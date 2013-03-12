@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+	<meta charset="utf-8">
+	<title>Chat</title>
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="jquery_websocket.js"></script>
+	<script type="text/javascript" src="jquery_cookie.js"></script>
+	<script type="text/javascript" src="adapter.js"></script>
+	<script type="text/javascript" src="chat.js"></script>
+	<link rel="stylesheet" href="conference.css" type="text/css">
+
+    </head>
+    <body>
+	<div class="Container">
+	    <div class="Content Left">
+		<h3>Messages</h3>
+		<div class="Chat">
+		    <video style="display:none;" autoplay="autoplay" class="RemoteMedia"></video>
+		    <div class="Messages Contrast">
+
+		    </div>
+		    <div class="Input Contrast">
+			<table>
+			    <tr>
+				<td style="width:auto;">
+				    <label for="ChatInput">Your message:</label>
+				</td>
+				<td style="padding-right: 10px; width:100%;">
+				    <input id="ChatInput" class="ChatInput" type="text" />
+				</td>
+			    </tr>
+			</table>
+		    </div>
+
+		</div>
+	    </div>
+	    <div class="Content Right">
+		<h3>Online users</h3>
+		<div class="Users Contrast">
+		    <ul class="UserList">
+
+		    </ul>
+		</div>
+	    </div>
+	</div>
+    </body>
+</html>

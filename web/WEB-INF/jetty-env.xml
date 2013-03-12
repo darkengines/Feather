@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
+<Configure id='wac' class="org.eclipse.jetty.webapp.WebAppContext">
+<New id="db" class="org.eclipse.jetty.plus.jndi.Resource">
+     <Arg><Ref id="wac"/></Arg>
+     <Arg>jdbc/db</Arg>
+     <Arg>
+       <New class="com.jolbox.bonecp.BoneCPDataSource">
+         <Set name="driverClass">com.mysql.jdbc.Driver</Set>
+         <Set name="jdbcUrl">jdbc:mysql://127.0.0.1/conference</Set>
+         <Set name="username">root</Set>
+         <Set name="password">2701104$reg2rt</Set>
+         <Set name="minConnectionsPerPartition">5</Set>
+         <Set name="maxConnectionsPerPartition">50</Set>
+         <Set name="acquireIncrement">5</Set>
+         <Set name="idleConnectionTestPeriod">30</Set>
+      </New>
+    </Arg>
+</New>
+</Configure>
