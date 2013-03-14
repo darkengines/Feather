@@ -19,49 +19,51 @@
 		});
 	    });
 	});
-	$('.Join').each(function() {
-	    var $container = $(this);
-	    var $email = $('input[name=email]', $container);
-	    var $password = $('input[name=password]', $container);
-	    var $displayName = $('input[name=display_name]', $container);
-	    var $emailResult = $('.Result', $email.parent());
-	    var $passwordResult = $('.Result', $password.parent());
-	    var $displayNameResult = $('.Result', $displayName.parent());
-	    var emailRegExp = new RegExp('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,4}$');
-	    var displayNameRegExp = new RegExp('^[A-Za-z0-9 _.-]*$');
-	    $email.bind('keyup blur', function() {
-		if (emailRegExp.test($email.val())) {
-		    $.ajax({
-			url: '../nexus/email_available',
-			data: {
-			    email: $email.val()
-			},
-			success: function(data) {
-			    if (data.code) {
-				$emailResult.removeClass('Accept').addClass('Error').text(data.content['email']);
-			    } else {
-				$emailResult.removeClass('Error').addClass('Accept').text('Email correct');
-			    }
+	$.form($('.Join'), {
+	    classes: new Array('Accept', 'Error'),
+	    fields: {
+		email: {
+		    validate: function(text, callback) {
+			var emailRegExp = new RegExp('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,4}$');
+			if (emailRegExp.test(text)) {
+			    $.ajax({
+				url: '../nexus/email_available',
+				data: {
+				    email: text
+				},
+				success: function(data) {
+				    if (data.code) {
+					callback('Error', data.content['email']);
+				    } else {
+					callback('Accept', 'Correct !');
+				    }
+				}
+			    });
+			} else {
+			    callback('Error', 'Invalid !');
+			}	
+		    }
+		},
+		password: {
+		    validate:function(text, callback) {
+			if (text.length < 4) {
+			    callback('Error', 'Invalid !');
+			} else {
+			    callback('Accept', 'Correct !');
 			}
-		    });
-		} else {
-		    $emailResult.removeClass('Accept').addClass('Error').text('Invalid email');
-		}	
-	    });
-	    $password.bind('keyup blur', function() {
-		if ($password.val().length < 4) {
-		    $passwordResult.removeClass('Accept').addClass('Error').text('Invalid password');
-		} else {
-		    $passwordResult.removeClass('Error').addClass('Accept').text('Password correct');
-		}	
-	    });
-	    $displayName.bind('keyup blur', function() {
-		if ($displayName.val().length > 3 && $displayName.val().length < 32 && displayNameRegExp.test($displayName.val())) {
-		    $displayNameResult.removeClass('Error').addClass('Accept').text('Display name correct');
-		} else {
-		    $displayNameResult.removeClass('Accept').addClass('Error').text('Invalid display name');
-		}	
-	    });
+		    }
+		},
+		display_name: {
+		    validate:function(text, callback) {
+			var displayNameRegExp = new RegExp('^[A-Za-z0-9 _.-]*$');
+			if (text.length > 3 && text.length < 32 && displayNameRegExp.test(text)) {
+			    callback('Accept', 'Correct !');
+			} else {
+			    callback('Error', 'Invalid !');
+			}
+		    }
+		}
+	    }
 	});
     });
 })(jQuery);
