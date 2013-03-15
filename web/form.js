@@ -14,6 +14,14 @@
 		});
 		$result.text(message).addClass(classe);
 	    };
+            var formRefreshCallback = function(result) {
+                $.each(result, function(i, field) {
+                    var $input = $('input[name='+i+']', $form);
+                    var $field = $input.parent();
+                    var f = args.fiels[i];
+                    fieldRefreshCallback(field, $field,field.valid, field.cl, field.msg);
+                });
+            }
 	    $.each(args.fields, function(i, field) {
 		var $input = $('input[name='+i+']', $form);
 		var $field = $input.parent();
@@ -33,12 +41,13 @@
 			fieldRefreshCallback(field, $field, valid, cl, msg);
 		    });
 		    result = result && field.valid;
-		    return result;
 		});
 		if (!result) {
 		    $(this).effect("pulsate", "slow");
-		}
-		return result;
+		} else {
+                    args.validate(formRefreshCallback);
+                }
+		return false;
 	    });
 	}
     });

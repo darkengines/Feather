@@ -2,7 +2,7 @@
 <div class="Card">
     <div class="Content">
 	<div class="Join Contrast Form" style="width: 512px;">
-	    <form action="join" method="post">
+	    <form action="http://127.0.0.1:8080/nexus/join" method="post">
 		<h3>New on Feather ? <span style="color: #999;">create an account</span></h3>
 		<div class="Field">
 		    <label for="join_email">Email</label>
@@ -20,7 +20,7 @@
 		    <div class="Result"></div>
 		</div>
 		<div class="Field">
-		    <input style="width:260px;" type="submit" value="Join" />
+		    <input style="width:266px;" type="submit" value="Join" />
 		</div>
 	    </form>
 	</div>

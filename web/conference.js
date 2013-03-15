@@ -19,7 +19,34 @@
 		});
 	    });
 	});
+        var $form = $('form', $('.Form'));
 	$.form($('.Join'), {
+            validate: function() {
+                var data = $form.serialize();
+                $.ajax({
+                    url: $form.attr('action'),
+                    data: data,
+                    success: function(result) {
+                        if (result.code) {
+                            
+                        } else {
+                            $.ajax({
+                                url: 'http://127.0.0.1:8080/nexus/login',
+                                data: data,
+                                success: function(data) {
+                                    if (data.code) {
+                                        
+                                    } else {
+                                        $.cookie('id', data.content.id);
+                                        $.cookie('uuid', data.content.uuid);
+                                        window.location.href = 'nexus.html';
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            },
 	    classes: new Array('Accept', 'Error'),
 	    fields: {
 		email: {
