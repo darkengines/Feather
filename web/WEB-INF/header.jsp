@@ -5,6 +5,7 @@
 	<meta charset="utf-8">
 	<title>Feather</title>
 	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="jquery_ui.js"></script>
 	<script type="text/javascript" src="form.js"></script>
 	<script type="text/javascript" src="conference.js"></script>
 	<script type="text/javascript" src="jquery_cookie.js"></script>

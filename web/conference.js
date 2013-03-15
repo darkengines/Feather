@@ -33,23 +33,23 @@
 				},
 				success: function(data) {
 				    if (data.code) {
-					callback('Error', data.content['email']);
+					callback(false, 'Error', data.content['email']);
 				    } else {
-					callback('Accept', 'Correct !');
+					callback(true, 'Accept', 'Correct !');
 				    }
 				}
 			    });
 			} else {
-			    callback('Error', 'Invalid !');
+			    callback(false, 'Error', 'Invalid !');
 			}	
 		    }
 		},
 		password: {
 		    validate:function(text, callback) {
 			if (text.length < 4) {
-			    callback('Error', 'Invalid !');
+			    callback(false, 'Error', 'Invalid !');
 			} else {
-			    callback('Accept', 'Correct !');
+			    callback(true, 'Accept', 'Correct !');
 			}
 		    }
 		},
@@ -57,9 +57,9 @@
 		    validate:function(text, callback) {
 			var displayNameRegExp = new RegExp('^[A-Za-z0-9 _.-]*$');
 			if (text.length > 3 && text.length < 32 && displayNameRegExp.test(text)) {
-			    callback('Accept', 'Correct !');
+			    callback(true, 'Accept', 'Correct !');
 			} else {
-			    callback('Error', 'Invalid !');
+			    callback(false, 'Error', 'Invalid !');
 			}
 		    }
 		}

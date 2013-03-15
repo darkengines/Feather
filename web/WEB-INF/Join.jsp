@@ -19,8 +19,8 @@
 		    <input style="width: 260px;" id="join_display_name" autocomplete="off" type="text" name="display_name" value ="<%= request.getParameter("display_name") != null ? request.getParameter("display_name") : "" %>"/>
 		    <div class="Result"></div>
 		</div>
-		<div class="Field" style="text-align: right">
-		    <input type="submit" value="Join" />
+		<div class="Field">
+		    <input style="width:260px;" type="submit" value="Join" />
 		</div>
 	    </form>
 	</div>
