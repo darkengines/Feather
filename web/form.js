@@ -14,22 +14,26 @@
 		});
 		$result.text(message).addClass(classe);
 	    };
-            var formRefreshCallback = function(result) {
-                $.each(result, function(i, field) {
-                    var $input = $('input[name='+i+']', $form);
-                    var $field = $input.parent();
-                    var f = args.fiels[i];
-                    fieldRefreshCallback(field, $field,field.valid, field.cl, field.msg);
-                });
-            }
+	    var validate = function(i, field, $input, $field) {
+		args.fields[i].validate($input.val(), function(valid, cl, msg) {
+		    fieldRefreshCallback(field, $field,valid, cl, msg);
+		});
+	    };
+	    var formRefreshCallback = function(result) {
+		$.each(result, function(i, field) {
+		    var $input = $('input[name='+i+']', $form);
+		    var $field = $input.parent();
+		    var f = args.fiels[i];
+		    fieldRefreshCallback(field, $field,field.valid, field.cl, field.msg);
+		});
+	    }
 	    $.each(args.fields, function(i, field) {
 		var $input = $('input[name='+i+']', $form);
 		var $field = $input.parent();
 		field.valid = false;
-		$input.bind('keyup blur', function() {
-		    args.fields[i].validate($input.val(), function(valid, cl, msg) {
-			fieldRefreshCallback(field, $field,valid, cl, msg);
-		    });
+		validate(i, field, $input, $field);
+		$input.bind('keyup blur ready', function(){
+		    validate(i, field, $input, $field);
 		});
 	    });
 	    $('input[type=submit]', $form).click(function() {
@@ -45,8 +49,8 @@
 		if (!result) {
 		    $(this).effect("pulsate", "slow");
 		} else {
-                    args.validate(formRefreshCallback);
-                }
+		    args.validate(formRefreshCallback);
+		}
 		return false;
 	    });
 	}

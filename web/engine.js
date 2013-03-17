@@ -85,7 +85,7 @@ var mediaConfig = {
 		sendingLocalStream: function(stream) {
 		    alert('NOT SUPPORTED');
 		},
-		websocket: $.websocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
+		websocket: $.websocket('ws://www.darkengines.net:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
 		    interval: 5000,
 		    open: function () {
 			engine.websocket.send('GET_ONLINE_USERS');
