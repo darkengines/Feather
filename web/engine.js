@@ -182,9 +182,21 @@ var mediaConfig = {
 				    return false;
 				}
 			    });
+			},
+			SEARCH: function(results) {
+			    engine.searchResult(results);
 			}
 		    }
 		}),
+		searchResult: function() {
+		    alert('NOT SUPPORTED');
+		},
+		searchUserByEmail: function(raw) {
+		    engine.websocket.send('SEARCH', raw);
+		},
+		makeFriend: function(target) {
+		    engine.websocket.send('MAKE_FRIEND', target);
+		},
 		bindUser: function(user) {
 		    var localUser = $.user(user.id, user.displayName);
 		    engine._onlineUsers.push(localUser);

@@ -17,8 +17,8 @@
 	</div>
     </div>
     <div class="Content">
-	<form action="" method="post">
-	    <div class="Login Contrast Form">
+	<form action="login" method="post">
+	    <div class="Inline Login Contrast Form">
 		<div class="Field">
 		    <label for="login_email">Email</label>
 		    <input style="width: 264px;" id="login_email" autocomplete="off" type="text" name="email" />
@@ -31,7 +31,7 @@
 		</div>
 	    </div>
 	</form>
-	<div class="Join Contrast Form">
+	<div class="Inline Join Contrast Form">
 	    <form action="join" method="post">
 		<h3>New on Feather ? <span style="color: #999;">create an account</span></h3>
 		<div class="Field">

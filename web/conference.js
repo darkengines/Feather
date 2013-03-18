@@ -19,9 +19,10 @@
 		});
 	    });
 	});
-	var $form = $('form', $('.Form'));
-	$('.Join').each(function() {
-	    $.form($('.Join'), {
+	$('.Form.Join').each(function() {
+	    var $container = $(this);
+	    var $form = $('form',$container);
+	    $.form($container, {
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({
@@ -94,9 +95,10 @@
 		}
 	    });
 	});
-	$form = $('form', $('.Login'));
-	$('.Login').each(function() {
-	    $.form($('.Login'), {
+	$('.Form.Login').each(function() {
+	    var $container = $(this);
+	    var $form = $('form',$container);
+	    $.form($container, {
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({

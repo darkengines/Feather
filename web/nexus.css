@@ -258,6 +258,25 @@ body {
     width: auto;
 }
 
+.SearchResult {
+    
+}
+.SearchResult .User {
+    padding: 2px 5px 2px 5px;
+    position: relative;
+    height: 21px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.SearchResult .User .Add {
+    background-image: url(add.png);
+    background-size: 16px 16px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    right: 4px;
+    top: 4px;
+}
 .Chat {
     position: relative;
     width: 100%;
