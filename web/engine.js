@@ -26,6 +26,8 @@ var mediaConfig = {
 		peer: null,
 		receivingLocalStream: false,
 		stream: null,
+                online: false,
+                reverseFriendship: false,
 		
 		reset : function() {
 		    user.pendingOffer = null;
@@ -85,26 +87,26 @@ var mediaConfig = {
 		sendingLocalStream: function(stream) {
 		    alert('NOT SUPPORTED');
 		},
-		websocket: $.websocket('ws://www.darkengines.net:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
+		websocket: $.websocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
 		    interval: 5000,
 		    open: function () {
-			engine.websocket.send('GET_ONLINE_USERS');
+			engine.websocket.send('GET_FRIENDS');
 		    },
 		    close: function () {
 						
 		    },
 		    events: {
-			GET_ONLINE_USERS: function(users) {
+			GET_FRIENDS: function(users) {
 			    $(users).each(function(index, user) {
 				engine.bindUser(user);
 			    });
 			    engine.onlineUsers(engine._onlineUsers);
 			},
-			ONLINE_USER: function(user) {
+			ONLINE_FRIEND: function(user) {
 			    var localUser = engine.bindUser(user);
 			    engine.onlineUser(localUser);
 			},
-			OFFLINE_USER: function(user) {
+			OFFLINE_FRIEND: function(user) {
 			    var indices = new Array();
 			    $(engine._onlineUsers).each(function(index, localUser) {
 				if (user.id == localUser.id) {

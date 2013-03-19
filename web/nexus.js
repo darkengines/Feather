@@ -77,7 +77,10 @@
 	
 	function addUser(user) {
 	    var $user = $('<div class="Contrast User"><table><tr><td class="DisplayName">'+user.displayName+'</td><td class="ChatMessageNotification"></td></tr></table></div>');
-	    user.label = $user;
+	    if (!user.online || !user.reverseFriendship) {
+                $user.attr('disabled', 'true');
+            }
+            user.label = $user;
 	    $user.click(function() {
 		if (selectedRecipient == null || selectedRecipient.id != user.id) {
 		    selectedRecipient = user;
