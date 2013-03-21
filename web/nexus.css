@@ -167,6 +167,7 @@ body {
     font-size: 12px;
     border-radius: 5px;
     margin-bottom: 8px;
+    width: 100%;
 }
 
 .Content.Middle {
@@ -248,6 +249,12 @@ body {
 .Users .User:hover {
     border-color: #2B6BA2;
     background-color: rgb(234, 238, 255);
+}
+.User.Online {
+    color: green;
+}
+.User.Offline {
+    color: red;
 }
 
 .Users .User .DisplayName {

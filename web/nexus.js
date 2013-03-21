@@ -18,6 +18,14 @@
 	var $searchResult = $('.SearchResult');
 	var $engine = $.engine();
 	
+	$('.Hiddable').each(function() {
+	   var $content = $(this);
+	   var $button = $content.prev();
+	   $button.click(function() {
+	       $content.toggle('blind', 'slow');
+	   })
+	});
+	
 	$camera.click(function() {
 	    if (selectedRecipient != null) {
 		selectedRecipient.call({
@@ -77,9 +85,11 @@
 	
 	function addUser(user) {
 	    var $user = $('<div class="Contrast User"><table><tr><td class="DisplayName">'+user.displayName+'</td><td class="ChatMessageNotification"></td></tr></table></div>');
-	    if (!user.online || !user.reverseFriendship) {
-                $user.attr('disabled', 'true');
-            }
+	    if (!user.online) {
+                $user.addClass('Offline');
+            } else {
+		$user.addClass('Online');
+	    }
             user.label = $user;
 	    $user.click(function() {
 		if (selectedRecipient == null || selectedRecipient.id != user.id) {
@@ -295,7 +305,7 @@
                             
 			    } else {
 				$.ajax({
-				    url: 'http://127.0.0.1:8080/nexus/login',
+				    url: 'http://www.darkengines.net:8080/nexus/login',
 				    data: data,
 				    success: function(data) {
 					if (data.code) {
@@ -364,7 +374,7 @@
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({
-			url: 'http://127.0.0.1:8080/nexus/login',
+			url: 'http://www.darkengines.net:8080/nexus/login',
 			data: data,
 			success: function(data) {
 			    if (data.code) {
@@ -407,7 +417,7 @@
 	    var result;
 	    $('submit', $container).click(function() {
 		$.ajax({
-		    url: '127.0.0.1:8080/nexus/login',
+		    url: 'www.darkengines.net:8080/nexus/login',
 		    data: $form.serialize(),
 		    asynch: false,
 		    success: function(response) {

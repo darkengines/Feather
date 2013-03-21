@@ -70,6 +70,9 @@ var mediaConfig = {
 		hangUp: function() {
 		    alert('NOT SUPPORTED');
 		},
+		stateChanged: function() {
+		    alert('NOT SUPPORTED');
+		},
 		offline: null
 	    }
 	    return user;
@@ -87,7 +90,16 @@ var mediaConfig = {
 		sendingLocalStream: function(stream) {
 		    alert('NOT SUPPORTED');
 		},
-		websocket: $.websocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
+		isNewUser: function(user) {
+		   var id = user.id;
+		   var found = false;
+		   $.each(engine._onlineUsers, function(i, u) {
+		      found = (u.id == id) ? u : false;
+		      return !found;
+		   });
+		   return found;
+		},
+		websocket: $.websocket('ws://www.darkengines.net:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
 		    interval: 5000,
 		    open: function () {
 			engine.websocket.send('GET_FRIENDS');
@@ -103,8 +115,14 @@ var mediaConfig = {
 			    engine.onlineUsers(engine._onlineUsers);
 			},
 			ONLINE_FRIEND: function(user) {
-			    var localUser = engine.bindUser(user);
-			    engine.onlineUser(localUser);
+			    var localUser = isNewUser(user);
+			    if (localUser) {
+				stateChanged(localUser);
+			    } else {
+				localUser = engine.bindUser(user);
+				engine.onlineUser(localUser);
+			    }
+			    
 			},
 			OFFLINE_FRIEND: function(user) {
 			    var indices = new Array();
@@ -201,6 +219,7 @@ var mediaConfig = {
 		},
 		bindUser: function(user) {
 		    var localUser = $.user(user.id, user.displayName);
+		    localUser.online = user.online;
 		    engine._onlineUsers.push(localUser);
 		    localUser.sendChatMessage = function(message) {
 			engine.websocket.send('CHAT_MESSAGE', {
