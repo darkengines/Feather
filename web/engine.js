@@ -117,7 +117,8 @@ var mediaConfig = {
 			ONLINE_FRIEND: function(user) {
 			    var localUser = isNewUser(user);
 			    if (localUser) {
-				stateChanged(localUser);
+				localUser.online = user.online;
+				engine.stateChanged(localUser);
 			    } else {
 				localUser = engine.bindUser(user);
 				engine.onlineUser(localUser);
