@@ -1,6 +1,6 @@
 (function(){
-    WebSocket = function(url, s){
-	var ws = new WebSocket(url);
+    JWebSocket = function(url, s){
+	var ws = new window.WebSocket(url);
 	ws.interval = s.interval;
 	ws.keepAlive = function() {
 	    ws.send('KEEP_ALIVE');

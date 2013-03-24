@@ -1,12 +1,6 @@
 <%@ include file="header.jsp" %>
 <div class="Container">
 	    <div class="Left">
-		<div class="Content Contrast">
-		    <h3>You</h3>
-		    <div class="Profile Hiddable">
-		    <img src="moi.png"/>
-		    </div>
-		</div>
 
 		<div class="Content Contrast ">
 		    <h3>Users</h3>
@@ -49,7 +43,7 @@
 			</div>
 		    </div>
 		    <div class="Options">
-			<a href="#" class="Camera"><img src="camera.png"/></a>
+			<a href="#" class="Camera"><img src="image/camera.png"/></a>
 		    </div>
 		    <div class="Contrast Input" contenteditable="true">
 		    </div>

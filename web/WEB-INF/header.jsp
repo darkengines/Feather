@@ -11,7 +11,7 @@
 	<script type="text/javascript" src="js/user.js"></script>
 	<script type="text/javascript" src="js/engine.js"></script>
 	<script type="text/javascript" src="js/form.js"></script>
-	<script type="text/javascript" src="js/nexus.js"></script>
+	<script type="text/javascript" src="js/application.js"></script>
 	<script type="text/javascript" src="js/jquery_cookie.js"></script>
 	<link rel="stylesheet" href="css/nexus.css" type="text/css" />
     </head>

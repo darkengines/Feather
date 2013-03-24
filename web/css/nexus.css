@@ -148,12 +148,12 @@ body {
 }
 .Form .Field .Error {
     color: red;
-    background-image: url(error.png);
+    background-image: url(../image/error.png);
     background-repeat: no-repeat;
 }
 .Form .Field .Accept {
     color: green;
-    background-image: url(accept.png);
+    background-image: url(../image/accept.png);
     background-repeat: no-repeat;
 }
 
@@ -276,7 +276,7 @@ body {
     cursor: pointer;
 }
 .SearchResult .User .Add {
-    background-image: url(add.png);
+    background-image: url(../image/add.png);
     background-size: 16px 16px;
     width: 16px;
     height: 16px;
