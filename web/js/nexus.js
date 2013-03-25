@@ -58,11 +58,10 @@
 	}
 	$engine.searchResult = function(results) {
 	    $searchResult.empty();
-	    $.each(results, function() {
-		var user = this;
+	    $.each(results, function(index, user) {
 		var $add=$('<div class="Add"></div>');
 		$add.click(function() {
-		   $engine.makeFriend(user.id); 
+		   user.makeFriend(); 
 		});
 		var $userItem = $('<div class="User Contrast">'+user.displayName+'</div>');
 		$userItem.append($add);

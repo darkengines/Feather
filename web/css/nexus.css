@@ -239,29 +239,29 @@ body {
     width: 100%;
 }
 
-.Users .User {
+.User {
     padding: 2px 5px 2px 5px;
     position: relative;
     height: 21px;
     font-weight: bold;
     cursor: pointer;
 }
-.Users .User:hover {
+.User:hover {
     border-color: #2B6BA2;
     background-color: rgb(234, 238, 255);
 }
-.User.Online {
+.Online {
     color: green;
 }
-.User.Offline {
+.Offline {
     color: red;
 }
 
-.Users .User .DisplayName {
+.User .DisplayName {
     width: 100%;
 }
 
-.Users .User .ChatMessageNotification {
+.User .ChatMessageNotification {
     width: auto;
 }
 

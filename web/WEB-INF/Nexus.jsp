@@ -3,8 +3,8 @@
 	    <div class="Left">
 
 		<div class="Content Contrast ">
-		    <h3>Users</h3>
-		    <div class="Users Hiddable">
+		    <h3>Friends</h3>
+		    <div class="Friends Hiddable">
 		    </div>
 		</div>
 		
@@ -14,10 +14,10 @@
 		    <form>
 			<div class="Field">
 			    <label for="search">Search</label>
-			    <input style="width:266px;" type="text" id="search" name="search"/>
+			    <input class="SearchInput" style="width:266px;" type="text" id="search" name="search"/>
 			</div>
 		    </form>
-		    <div class="SearchResult">
+		    <div class="SearchOutput">
 			
 		    </div>
 			</div>

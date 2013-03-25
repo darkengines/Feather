@@ -6,7 +6,7 @@
 		<h3>Login</h3>
 		<div class="Field">
 		    <label for="join_email">Email</label>
-		    <input style="width: 260px;" id="join_email" autocomplete="off" type="text" name="email" value="<%= request.getParameter("email") != null ? request.getParameter("email") : ""  %>" />
+		    <input style="width: 260px;" id="join_email" type="text" name="email" value="<%= request.getParameter("email") != null ? request.getParameter("email") : ""  %>" />
 			<div class="Result"></div>
 		</div>
 		<div class="Field">
