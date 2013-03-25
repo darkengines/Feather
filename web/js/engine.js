@@ -29,6 +29,9 @@ var safeCall = function(f) {
 			});
 			safeCall(engine.onsearchresult, users);
 		    },
+                    FRIEND_REQUEST: function(user) {
+                        safeCall(engine.onfriendrequest, user);
+                    },
 		    STATE_CHANGED: function(user) {
 			
 		    }

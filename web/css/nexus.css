@@ -168,6 +168,7 @@ body {
     border-radius: 5px;
     margin-bottom: 8px;
     width: 100%;
+    padding: 4px;
 }
 
 .Content.Middle {
@@ -227,7 +228,7 @@ body {
 }
 
 .Profile {
-    
+
     width: 100%;
 }
 
@@ -266,7 +267,7 @@ body {
 }
 
 .SearchResult {
-    
+
 }
 .SearchResult .User {
     padding: 2px 5px 2px 5px;
@@ -359,4 +360,37 @@ table tr {
 table td{
     padding: 0;
     margin: 0;
+}
+.Table ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.25),0 -1px 0 rgba(0,0,0,0.1) inset;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.25),0 -1px 0 rgba(0,0,0,0.1) inset;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25),0 -1px 0 rgba(0,0,0,0.1) inset;
+    background: #00A0D1;
+    border-radius: 4px;
+}
+.Table ul li {
+    margin: 2px;
+    padding: 0;
+    display: inline-block;
+    border-left: solid 1px #dddddd;
+}
+.Table ul li:first-child {
+    border-left: none;
+}
+.Table ul li a {
+    background-size: 16px 16px;
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    line-height: 16px;
+    height: 16px;
+    text-decoration: none;
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+    outline: none;
+    color: #BFE4EF;
+    padding: 0 0 0 18px;
+    font-weight: bold;
 }
