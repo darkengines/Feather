@@ -12,9 +12,11 @@
                     <div class="Friends Hiddable">
 
                     </div>
-                    <div id="requests">
+                </div>
+		<div id="requests">
+		    <div class="FriendRequests">
 
-                    </div>
+		    </div>
                 </div>
             </div>
         </div>
@@ -35,29 +37,34 @@
 
     </div>
     <div class="Right">
-        <div class="Content Contrast Chat">
-            <h3>Talk</h3>
-            <div class="Header">
-                <div class="LocalMedias"></div>
-                <div class="RemoteMedias"></div>
-            </div>
-            <div class="Contrast Output">
-                <div class="TextContent"></div>
-                <div class="Notification">
-                    <table>
-                        <tr>
-                            <td align="left" class="CallNotification"></td>
-                            <td align="right" class="MessageNotification"></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div class="Options">
-                <a href="#" class="Camera"><img src="image/camera.png"/></a>
-            </div>
-            <div class="Contrast Input" contenteditable="true">
-            </div>
-        </div>
+	<div class="Content Contrast Main">
+	    <div class="Welcome">
+		
+	    </div>
+	    <div class="Chat">
+		<h3>Talk</h3>
+		<div class="Header">
+		    <div class="LocalMedias"></div>
+		    <div class="RemoteMedias"></div>
+		</div>
+		<div class="Contrast Output">
+		    <div class="TextContent"></div>
+		    <div class="Notification">
+			<table>
+			    <tr>
+				<td align="left" class="CallNotification"></td>
+				<td align="right" class="MessageNotification"></td>
+			    </tr>
+			</table>
+		    </div>
+		</div>
+		<div class="Options">
+		    <a href="#" class="Camera"><img src="image/camera.png"/></a>
+		</div>
+		<div class="Contrast Input" contenteditable="true">
+		</div>
+	    </div>
+	</div>
     </div>
 </div>
 <%@ include file="footer.jsp" %>

@@ -1,5 +1,7 @@
 var safeCall = function(f) {
-    f.apply(f, [].splice.call(arguments,1));
+    if (f) {
+	f.apply(f, [].splice.call(arguments,1));
+    }
 };
 (function() {
     Engine = function(id, uuid) {
@@ -9,7 +11,7 @@ var safeCall = function(f) {
 		interval: 5000,
 		open: function() {
 		    safeCall(engine.onconnected)
-		    },
+		},
 		events: {
 		    GET_FRIENDS: function(friends) {
 			$.each(friends, function(index, friend) {
@@ -25,15 +27,28 @@ var safeCall = function(f) {
 			    user.makeFriend = function() {
 				engine.webSocket.send('MAKE_FRIEND', user.id);
 			    };
-			    users.push(friend);
+			    users.push(user);
 			});
 			safeCall(engine.onsearchresult, users);
 		    },
-                    FRIEND_REQUEST: function(user) {
-                        safeCall(engine.onfriendrequest, user);
-                    },
+		    FRIEND_REQUEST: function(user) {
+			user.makeFriend = function() {
+			    engine.webSocket.send('MAKE_FRIEND', user.id);
+			}
+			user.rejectFriend = function() {
+			    engine.webSocket.send('REJECT_FRIEND_REQUEST', user.id);
+			}
+			safeCall(engine.onfriendrequest, user);
+		    },
 		    STATE_CHANGED: function(user) {
-			
+			if (user.id in engine.users) {
+			    engine.users[user.id].online = user.online;
+			    safeCall(engine.onstatechanged, engine.users[user.id]);
+			} else {
+			    var friend = new User(user);
+			    engine.users.push(friend);
+			    safeCall(engine.onnewfriend, friend);
+			}
 		    }
 		}
 	    }),

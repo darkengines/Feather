@@ -10,9 +10,9 @@
 	</p>
 	<div class="Featurings">
 	    <div class="Featuring">
-		<a href="https://www.google.com/chrome"><img src="chrome.png"/></a>
-		<a href="https://sites.google.com/site/webrtc/"><img src="webrtc.png"/></a>
-		<a href="https://www.w3schools.com"><img src="html5.png"/></a>
+		<a href="https://www.google.com/chrome"><img src="image/chrome.png"/></a>
+		<a href="https://sites.google.com/site/webrtc/"><img src="image/webrtc.png"/></a>
+		<a href="https://www.w3schools.com"><img src="image/html5.png"/></a>
 	    </div>
 	</div>
     </div>

@@ -1,9 +1,15 @@
 (function($){
-    $('document').ready(function() {
-	
+    $('document').ready(function() {	
+	var $chat = $('.Chat');
 	var $friends = $('div.Friends');
+	var $friendRequests = $('div.FriendRequests');
 	var $searchInput = $('.SearchInput');
 	var $searchOutput = $('.SearchOutput');
+	
+	var loadChat = function(user) {
+	    
+	    $chat.show();
+	};
 	
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
 	engine.ongetfriends = function(friends) {
@@ -17,7 +23,15 @@
 		$friends.append($friend);
 	    });
 	};
-	
+	engine.onnewfriend = function(user) {
+	    var $friend = $('<div class="User">'+user.displayName+'</div>');
+	    if (user.online) {
+		$friend.addClass('Online');
+	    } else {
+		$friend.addClass('Offline');
+	    }
+	    $friends.append($friend);
+	}
 	$searchInput.bind('keyup blur', function() {
 	    var value = $searchInput.val();
 	    if (value.length > 2) {
@@ -37,13 +51,38 @@
 		} else {
 		    $friend.addClass('Offline');
 		}
-		var $add=$('<div class="Add"></div>');
+		var $add=$('<a class="Add"></a>');
 		$add.click(function() {
-		   engine.makeFriend(user.id); 
+		    user.makeFriend(user.id); 
 		});
 		$friend.append($add);
 		$searchOutput.append($friend);
 	    });
+	};
+	engine.onfriendrequest = function(user) {
+	    var $accept = $('<div class="AcceptFriendRequest"></div>');
+	    $accept.click(function() {
+		user.makeFriend();
+	    });
+	    var $reject = $('<div class="RejectFriendRequest"></div>');
+	    $reject.click(function() {
+		user.rejectFriend();
+	    });
+	    var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
+	    if (user.online) {
+		$request.addClass('Online');
+	    } else {
+		$request.addClass('Offline');
+	    }
+	    $request.append($reject).append($accept);
+	    $friendRequests.append($request);
+	};
+	engine.onstatechanged = function(user) {
+	    if (user.online) {
+		user.label.removeClass('Offline').addClass('Online');
+	    } else {
+		user.label.removeClass('Online').addClass('Offline');
+	    }
 	}
 	$('.Form.Join').not('.Inline').each(function() {
 	    var $container = $(this);
@@ -207,6 +246,6 @@
 		});
 	    });
 	});
-        $('.Table').tabs();
+	$('.Table').tabs();
     });
 })(jQuery);
