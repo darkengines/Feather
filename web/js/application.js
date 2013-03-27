@@ -43,6 +43,7 @@
 		    chat.loadMessages(friend.chatMessages);
 		}
 	    });
+            friend.label = $friend;
 	    $friends.append($friend);
 	}
 	engine.ongetfriends = function(friends) {
@@ -51,7 +52,7 @@
 		});
 	};
 	engine.onnewfriend = function(user) {
-	     processFriend(friend)
+	     processFriend(user)
 	}
 	$searchInput.bind('keyup blur', function() {
 	    var value = $searchInput.val();
