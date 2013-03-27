@@ -6,6 +6,8 @@ var safeCall = function(f) {
 (function() {
     Engine = function(id, uuid) {
 	var engine = {
+	    id: id,
+	    uuid: uuid,
 	    users: new Array(),
 	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
@@ -15,8 +17,7 @@ var safeCall = function(f) {
 		events: {
 		    GET_FRIENDS: function(friends) {
 			$.each(friends, function(index, friend) {
-			    var user = new User(friend);
-			    engine.users.push(friend);
+			    engine.bindUser(friend);
 			});
 			safeCall(engine.ongetfriends, engine.users);
 		    },
@@ -45,10 +46,33 @@ var safeCall = function(f) {
 			    engine.users[user.id].online = user.online;
 			    safeCall(engine.onstatechanged, engine.users[user.id]);
 			} else {
-			    var friend = new User(user);
-			    engine.users.push(friend);
+			    var friend = engine.bindUser(user);
 			    safeCall(engine.onnewfriend, friend);
 			}
+		    },
+		    CHAT_MESSAGE: function(chatMessage) {
+			var author = null;
+			var recipient = null;
+			var target = null;
+			chatMessage.echo = false;
+			if (chatMessage.authorId == engine.id) {
+			    author = new User(id, '', 'Me');
+			    recipient = JSLINQ(engine.users).First(function(u) {
+				return u.id == chatMessage.recipientId;
+			    });
+			    chatMessage.echo = true;
+			    target = recipient;
+			} else {
+			    author = JSLINQ(engine.users).First(function(u) {
+				return u.id == chatMessage.authorId;
+			    });
+			    recipient = new User(id, '', 'Me');
+			    target = author;
+			}
+			chatMessage.author = author;
+			chatMessage.recipient = recipient;
+			target.pendingChatMessages.push(chatMessage);
+			safeCall(target.onChatMessage);
 		    }
 		}
 	    }),
@@ -57,6 +81,14 @@ var safeCall = function(f) {
 	    },
 	    search: function(words) {
 		engine.webSocket.send('SEARCH', words);
+	    },
+	    bindUser: function(user) {
+		var u = new User(user);
+		engine.users.push(u);
+		u.sendChatMessage = function(chatMessage) {
+		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
+		}
+		return u;
 	    }
 	}
 	return engine;

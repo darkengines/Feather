@@ -13,6 +13,8 @@
 	<script type="text/javascript" src="js/form.js"></script>
 	<script type="text/javascript" src="js/application.js"></script>
 	<script type="text/javascript" src="js/jquery_cookie.js"></script>
+	<script type="text/javascript" src="js/chat.js"></script>
+	<script type="text/javascript" src="js/jslinq.js"></script>
 	<link rel="stylesheet" href="css/nexus.css" type="text/css" />
     </head>
     <body>

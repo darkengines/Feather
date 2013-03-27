@@ -294,7 +294,6 @@ body {
 .Chat {
     position: relative;
     width: 100%;
-    display: none;
 }
 
 .Chat div.Output {

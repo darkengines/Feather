@@ -5,7 +5,9 @@
 	   id: params.id,
 	   email: params.email,
 	   displayName: params.displayName,
-	   online: params.online
+	   online: params.online,
+	   chatMessages: new Array(),
+	   pendingChatMessages: new Array()
        };
        return user;
    }

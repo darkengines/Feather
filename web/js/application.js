@@ -5,32 +5,53 @@
 	var $friendRequests = $('div.FriendRequests');
 	var $searchInput = $('.SearchInput');
 	var $searchOutput = $('.SearchOutput');
+	var selectedUser = null;
 	
-	var loadChat = function(user) {
-	    
-	    $chat.show();
-	};
+	var chat = new Chat($chat);
+	chat.onSend = function(message) {
+	    if (selectedUser != null) {
+		var chatMessage = {
+		    recipientId: selectedUser.id,
+		    content: message
+		};
+		selectedUser.sendChatMessage(chatMessage);
+	    }
+	}
 	
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
-	engine.ongetfriends = function(friends) {
-	    $.each(friends, function(index, friend) {
-		var $friend = $('<div class="User">'+friend.displayName+'</div>');
-		if (friend.online) {
-		    $friend.addClass('Online');
+	function processFriend(friend) {
+	    friend.onChatMessage = function() {
+		if (selectedUser != null && selectedUser.id == friend.id) {
+		    chat.loadMessages(friend.pendingChatMessages);
+		    while (friend.pendingChatMessages.length) {
+			friend.chatMessages.push(friend.pendingChatMessages.pop());
+		    }
 		} else {
-		    $friend.addClass('Offline');
+		    alert('CACAAAAA ! t\'a un message !! CACA il faut cliquer sur l\'user d\'abord !! (CACA DANS LA BOUCHE)');
 		}
-		$friends.append($friend);
-	    });
-	};
-	engine.onnewfriend = function(user) {
-	    var $friend = $('<div class="User">'+user.displayName+'</div>');
-	    if (user.online) {
+	    }
+	    var $friend = $('<div class="User">'+friend.displayName+'</div>');
+	    if (friend.online) {
 		$friend.addClass('Online');
 	    } else {
 		$friend.addClass('Offline');
 	    }
+	    $friend.click(function() {
+		selectedUser = friend;
+		if (friend.online) {
+		    chat.clear();
+		    chat.loadMessages(friend.chatMessages);
+		}
+	    });
 	    $friends.append($friend);
+	}
+	engine.ongetfriends = function(friends) {
+	    $.each(friends, function(index, friend) {
+		     processFriend(friend);
+		});
+	};
+	engine.onnewfriend = function(user) {
+	     processFriend(friend)
 	}
 	$searchInput.bind('keyup blur', function() {
 	    var value = $searchInput.val();
@@ -104,7 +125,7 @@
 					if (data.code) {
                                         
 					} else {
-					    $.cookie('id', data.content.id);
+					    $.cookie('id', data.content.userId);
 					    $.cookie('uuid', data.content.uuid);
 					    window.location.href = 'nexus';
 					}
@@ -173,7 +194,7 @@
 			    if (data.code) {
                                         
 			    } else {
-				$.cookie('id', data.content.id);
+				$.cookie('id', data.content.userId);
 				$.cookie('uuid', data.content.uuid);
 				window.location.href = 'nexus';
 			    }
@@ -217,7 +238,7 @@
 			if (response.code) {
 			    result = true;
 			} else {
-			    $.cookie('id', response.content.id);
+			    $.cookie('id', response.content.userId);
 			    $.cookie('uuid', response.content.uuid);
 			    window.location.href = 'nexus';
 			    result = false;
