@@ -40,6 +40,9 @@
 		selectedUser = friend;
 		if (friend.online) {
 		    chat.clear();
+		    while (friend.pendingChatMessages.length > 0) {
+			friend.chatMessages.push(friend.pendingChatMessages.pop());
+		    }		    
 		    chat.loadMessages(friend.chatMessages);
 		}
 	    });

@@ -42,7 +42,7 @@ var safeCall = function(f) {
 			safeCall(engine.onfriendrequest, user);
 		    },
 		    STATE_CHANGED: function(user) {
-                        u = JSLINQ(engine.users).FirstOrDefault(function(u) {return u.id == user.id});
+                        u = JSLINQ(engine.users).First(function(u) {return u.id == user.id});
 			if (u != null) {
 			    u.online = user.online;
 			    safeCall(engine.onstatechanged, u);
