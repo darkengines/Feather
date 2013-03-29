@@ -9,6 +9,9 @@ var safeCall = function(f) {
 	    id: id,
 	    uuid: uuid,
 	    users: new Array(),
+	    foundUsers: new Array(),
+	    requestedUsers: new Array(),
+	    friendRequests: new Array(),
 	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
@@ -22,15 +25,15 @@ var safeCall = function(f) {
 			safeCall(engine.ongetfriends, engine.users);
 		    },
 		    SEARCH: function(friends) {
-			var users = new Array();
+			engine.foundUsers.length = 0;
 			$.each(friends, function(index, friend) {
 			    var user = new User(friend);
 			    user.makeFriend = function() {
 				engine.webSocket.send('MAKE_FRIEND', user.id);
 			    };
-			    users.push(user);
+			    engine.foundUsers.push(user);
 			});
-			safeCall(engine.onsearchresult, users);
+			safeCall(engine.onsearchresult, engine.foundUsers);
 		    },
 		    FRIEND_REQUEST: function(user) {
 			user.makeFriend = function() {
@@ -74,6 +77,25 @@ var safeCall = function(f) {
 			chatMessage.recipient = recipient;
 			target.pendingChatMessages.push(chatMessage);
 			safeCall(target.onChatMessage);
+		    },
+		    GET_FRIEND_REQUESTS: function(users) {
+			$.each(users, function(index, user) {
+			   var u = new User(user);
+			   engine.friendRequests.push(u);
+			});
+			safeCall(engine.ongotfriendrequests, engine.friendRequests);
+		    },
+		    GET_REQUESTED_FRIENDS: function(users) {
+			$.each(users, function(index, user) {
+			   var u = new User(user);
+			   engine.requestedUsers.push(u);
+			});
+			safeCall(engine.ongotrequestedfriends, engine.requestedUsers);
+		    },
+		    REQUESTED_FRIEND: function(user) {
+			var u = new User(user);
+			engine.requestedUsers.push(u);
+			safeCall(engine.ongotrequestedfriend, u);
 		    }
 		}
 	    }),
@@ -90,6 +112,12 @@ var safeCall = function(f) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
 		}
 		return u;
+	    },
+	    getFriendRequests: function() {
+		engine.webSocket.send('GET_FRIEND_REQUESTS');
+	    },
+	    getRequestedFriends: function() {
+		engine.webSocket.send('GET_REQUESTED_FRIENDS');
 	    }
 	}
 	return engine;

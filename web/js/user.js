@@ -6,6 +6,7 @@
 	   email: params.email,
 	   displayName: params.displayName,
 	   online: params.online,
+	   isFriend: params.isFriend,
 	   chatMessages: new Array(),
 	   pendingChatMessages: new Array()
        };

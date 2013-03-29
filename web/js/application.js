@@ -46,16 +46,16 @@
 		    chat.loadMessages(friend.chatMessages);
 		}
 	    });
-            friend.label = $friend;
+	    friend.label = $friend;
 	    $friends.append($friend);
 	}
 	engine.ongetfriends = function(friends) {
 	    $.each(friends, function(index, friend) {
-		     processFriend(friend);
-		});
+		processFriend(friend);
+	    });
 	};
 	engine.onnewfriend = function(user) {
-	     processFriend(user)
+	    processFriend(user)
 	}
 	$searchInput.bind('keyup blur', function() {
 	    var value = $searchInput.val();
@@ -76,11 +76,13 @@
 		} else {
 		    $friend.addClass('Offline');
 		}
-		var $add=$('<a class="Add"></a>');
-		$add.click(function() {
-		    user.makeFriend(user.id); 
-		});
-		$friend.append($add);
+		if (!user.isFriend) {
+		    var $add=$('<a class="Add"></a>');
+		    $add.click(function() {
+			user.makeFriend(user.id); 
+		    });
+		    $friend.append($add);
+		}
 		$searchOutput.append($friend);
 	    });
 	};
@@ -108,6 +110,36 @@
 	    } else {
 		user.label.removeClass('Online').addClass('Offline');
 	    }
+	};
+	engine.ongotrequestedfriend = function(user) {
+	    var friend = JSLINQ(engine.foundUsers).First(function(u) {
+		return u.id == user.id
+		});
+	    if (friend != null) {
+		var label = friend.label;
+		$('.Add', label).remove();
+	    }
+	}
+	engine.ongotfriendrequests = function(users) {
+	    $friendRequests.empty();
+	    $.each(users, function(index, user) {
+		var $accept = $('<div class="AcceptFriendRequest"></div>');
+		$accept.click(function() {
+		    user.makeFriend();
+		});
+		var $reject = $('<div class="RejectFriendRequest"></div>');
+		$reject.click(function() {
+		    user.rejectFriend();
+		});
+		var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
+		if (user.online) {
+		    $request.addClass('Online');
+		} else {
+		    $request.addClass('Offline');
+		}
+		$request.append($reject).append($accept);
+		$friendRequests.append($request);
+	    });
 	}
 	$('.Form.Join').not('.Inline').each(function() {
 	    var $container = $(this);
