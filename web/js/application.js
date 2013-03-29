@@ -67,6 +67,8 @@
 	
 	engine.onconnected=function() {
 	    engine.getFriends();
+            engine.getFriendRequests();
+            engine.getRequestedFriends();
 	};
 	engine.onsearchresult = function(users) {
 	    $.each(users, function(index, user) {
@@ -82,6 +84,7 @@
 			user.makeFriend(user.id); 
 		    });
 		    $friend.append($add);
+                    user.label = $friend;
 		}
 		$searchOutput.append($friend);
 	    });
