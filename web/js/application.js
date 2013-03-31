@@ -6,6 +6,9 @@
 	var $searchInput = $('.SearchInput');
 	var $searchOutput = $('.SearchOutput');
 	var selectedUser = null;
+	var $channelForm = $('form.Channel');
+	var $channelButton = $('submit', $channelForm);
+	var $channelInput = $('.ChannelInput', $channelForm);
 	
 	var chat = new Chat($chat);
 	chat.onSend = function(message) {
@@ -55,7 +58,14 @@
 	    });
 	};
 	engine.onnewfriend = function(user) {
-	    processFriend(user)
+	    var u = JSLINQ(engine.friendRequests).First(function(u) {
+		return u.id == user.id
+	    });
+	    if (u != null) {
+		var $label = u.label;
+		$label.remove();
+	    }
+	    processFriend(user);
 	}
 	$searchInput.bind('keyup blur', function() {
 	    var value = $searchInput.val();
@@ -64,11 +74,13 @@
 		engine.search(value);
 	    }
 	});
-	
+	$channelButton.click(function() {
+	   engine.createChannel($channelInput.val());
+	});
 	engine.onconnected=function() {
 	    engine.getFriends();
-            engine.getFriendRequests();
-            engine.getRequestedFriends();
+	    engine.getFriendRequests();
+	    engine.getRequestedFriends();
 	};
 	engine.onsearchresult = function(users) {
 	    $.each(users, function(index, user) {
@@ -84,28 +96,10 @@
 			user.makeFriend(user.id); 
 		    });
 		    $friend.append($add);
-                    user.label = $friend;
+		    user.label = $friend;
 		}
 		$searchOutput.append($friend);
 	    });
-	};
-	engine.onfriendrequest = function(user) {
-	    var $accept = $('<div class="AcceptFriendRequest"></div>');
-	    $accept.click(function() {
-		user.makeFriend();
-	    });
-	    var $reject = $('<div class="RejectFriendRequest"></div>');
-	    $reject.click(function() {
-		user.rejectFriend();
-	    });
-	    var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
-	    if (user.online) {
-		$request.addClass('Online');
-	    } else {
-		$request.addClass('Offline');
-	    }
-	    $request.append($reject).append($accept);
-	    $friendRequests.append($request);
 	};
 	engine.onstatechanged = function(user) {
 	    if (user.online) {
@@ -117,33 +111,43 @@
 	engine.ongotrequestedfriend = function(user) {
 	    var friend = JSLINQ(engine.foundUsers).First(function(u) {
 		return u.id == user.id
-		});
+	    });
 	    if (friend != null) {
 		var label = friend.label;
 		$('.Add', label).remove();
 	    }
 	}
+	engine.onfriendrequest = function(user) {
+	    bindFriendRequest(user);
+	};
 	engine.ongotfriendrequests = function(users) {
 	    $friendRequests.empty();
 	    $.each(users, function(index, user) {
-		var $accept = $('<div class="AcceptFriendRequest"></div>');
+		bindFriendRequest(user);
+	    });
+	}
+	var bindFriendRequest = function(request) {
+	    var $accept = $('<div class="AcceptFriendRequest"></div>');
 		$accept.click(function() {
-		    user.makeFriend();
+		    request.makeFriend();
 		});
 		var $reject = $('<div class="RejectFriendRequest"></div>');
 		$reject.click(function() {
-		    user.rejectFriend();
+		    request.rejectFriend();
 		});
 		var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
-		if (user.online) {
+		if (request.online) {
 		    $request.addClass('Online');
 		} else {
 		    $request.addClass('Offline');
 		}
 		$request.append($reject).append($accept);
+		request.onrejected = function() {
+		    request.label.remove();
+		}
+		request.label = $request;
 		$friendRequests.append($request);
-	    });
-	}
+	};
 	$('.Form.Join').not('.Inline').each(function() {
 	    var $container = $(this);
 	    var $form = $('form',$container);

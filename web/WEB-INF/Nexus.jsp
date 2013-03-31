@@ -20,6 +20,21 @@
                 </div>
             </div>
         </div>
+	<div class="Content Form Contrast Channel">
+            <h3>Channels</h3>
+            <div class="Channel Hiddable">
+                <form class="Channel">
+                    <div class="Field">
+                        <label for="channel">Channel name</label>
+                        <input class="ChannelInput" style="width:266px;" type="text" id="channel" name="channel"/>
+			<input type="submit" value="Create channel" />
+                    </div>
+                </form>
+                <div class="SearchOutput">
+
+                </div>
+            </div>
+        </div>
         <div class="Content Form Contrast Search">
             <h3>Search friends</h3>
             <div class="Search Hiddable">
