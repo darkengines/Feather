@@ -22,7 +22,14 @@
 	}
 	
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
-	function processFriend(friend) {
+        function processFriend(friend) {
+            friend.onstatechanged = function() {
+                if (friend.online) {
+                    friend.label.removeClass('Offline').addClass('Online');
+                } else {
+                    friend.label.removeClass('Online').addClass('Offline');
+                }
+            }
 	    friend.onChatMessage = function() {
 		if (selectedUser != null && selectedUser.id == friend.id) {
 		    chat.loadMessages(friend.pendingChatMessages);
@@ -101,13 +108,6 @@
 		$searchOutput.append($friend);
 	    });
 	};
-	engine.onstatechanged = function(user) {
-	    if (user.online) {
-		user.label.removeClass('Offline').addClass('Online');
-	    } else {
-		user.label.removeClass('Online').addClass('Offline');
-	    }
-	};
 	engine.ongotrequestedfriend = function(user) {
 	    var friend = JSLINQ(engine.foundUsers).First(function(u) {
 		return u.id == user.id
@@ -117,8 +117,8 @@
 		$('.Add', label).remove();
 	    }
 	}
-	engine.onfriendrequest = function(user) {
-	    bindFriendRequest(user);
+	engine.onfriendrequest = function(request) {
+	    bindFriendRequest(request);
 	};
 	engine.ongotfriendrequests = function(users) {
 	    $friendRequests.empty();
@@ -127,16 +127,17 @@
 	    });
 	}
 	var bindFriendRequest = function(request) {
+            var user = engine.users[request.user];
 	    var $accept = $('<div class="AcceptFriendRequest"></div>');
 		$accept.click(function() {
-		    request.makeFriend();
+		    user.makeFriend();
 		});
 		var $reject = $('<div class="RejectFriendRequest"></div>');
 		$reject.click(function() {
-		    request.rejectFriend();
+		    user.rejectFriend();
 		});
 		var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
-		if (request.online) {
+		if (user.online) {
 		    $request.addClass('Online');
 		} else {
 		    $request.addClass('Offline');

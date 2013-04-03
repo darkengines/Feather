@@ -46,9 +46,13 @@ var safeCall = function(f) {
 			safeCall(engine.onsearchresult, engine.foundUsers);
 		    },
 		    FRIEND_REQUEST: function(request) {
-			engine.updateUser(request.owner);
-			engine.friendRequest.push(request.);
-			safeCall(engine.onfriendrequest, user);
+			engine.users[request.user.id] = request.user;
+			engine.friendRequests[request.id] = {
+                            id: request.id,
+                            user: request.user.id
+                        }
+                        engine.bindFriendRequest(engine.friendRequests[request.id]);
+			safeCall(engine.onfriendrequest, engine.users[request.user.id]);
 		    },
 		    REJECT_FRIEND_REQUEST: function(user) {
 			var index = null;
@@ -94,11 +98,7 @@ var safeCall = function(f) {
 	    updateUser: function(user) {
 		if (user.id in engine.users) {
 		    engine.users[user.id].online = user.online;
-		    safeCall(engine.onstatechanged, engine.users[user.id]);
-		} else {
-		    engine.users[user.id] = user;
-		    engine.bindUser(engine.users[user.id]);
-		    safeCall(engine.onnewfriend, engine.users[user.id]);
+		    safeCall(engine.users[user.id].onstatechanged);
 		}
 	    },
 	    getFriends: function() {
@@ -119,14 +119,13 @@ var safeCall = function(f) {
 		engine.requestedUsers.push(u);
 	    },
 	    bindFriendRequest: function(request) {
-		var u = new User(request);
-		u.makeFriend = function() {
-		    engine.webSocket.send('MAKE_FRIEND', u.id);
+		var user = engine.users[request.user];
+		user.makeFriend = function() {
+		    engine.webSocket.send('MAKE_FRIEND', user.id);
 		}
-		u.rejectFriend = function() {
-		    engine.webSocket.send('REJECT_FRIEND_REQUEST', u.id);
+		user.rejectFriend = function() {
+		    engine.webSocket.send('REJECT_FRIEND_REQUEST', user.id);
 		}
-		engine.friendRequests.push(u);
 	    },
 	    getFriendRequests: function() {
 		engine.webSocket.send('GET_FRIEND_REQUESTS');
