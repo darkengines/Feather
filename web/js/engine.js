@@ -15,14 +15,24 @@ var safeCall = function(f) {
 	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
-		    safeCall(engine.onconnected)
+		    engine.webSocket.send('INIT');
+		    safeCall(engine.onconnected);
 		},
 		events: {
-		    GET_FRIENDS: function(friends) {
-			$.each(friends, function(index, friend) {
-			    engine.bindUser(friend);
+		    INIT: function(data) {
+			engine.users = data.users;
+			engine.friends = data.friends;
+			engine.friendRequests = data.friendRequests;
+			engine.requestedFriends = data.requestedFriends;
+			engine.channelInvitations = data.channelInvitations;
+			engine.channels = data.channels;
+			$.each(engine.friends, function(index, userId) {
+			    engine.bindUser(engine.users[userId]);
 			});
-			safeCall(engine.ongetfriends, engine.users);
+			safeCall(engine.oninitialized);
+		    },
+		    STATE_CHANGED: function(user) {
+			engine.updateUser(user);
 		    },
 		    SEARCH: function(friends) {
 			engine.foundUsers.length = 0;
@@ -35,8 +45,9 @@ var safeCall = function(f) {
 			});
 			safeCall(engine.onsearchresult, engine.foundUsers);
 		    },
-		    FRIEND_REQUEST: function(user) {
-			engine.bindFriendRequest(user);
+		    FRIEND_REQUEST: function(request) {
+			engine.updateUser(request.owner);
+			engine.friendRequest.push(request.);
 			safeCall(engine.onfriendrequest, user);
 		    },
 		    REJECT_FRIEND_REQUEST: function(user) {
@@ -54,18 +65,6 @@ var safeCall = function(f) {
 			    safeCall(request.onrejected);
 			}
 		    },
-		    STATE_CHANGED: function(user) {
-			u = JSLINQ(engine.users).First(function(u) {
-			    return u.id == user.id
-			});
-			if (u != null) {
-			    u.online = user.online;
-			    safeCall(engine.onstatechanged, u);
-			} else {
-			    var friend = engine.bindUser(user);
-			    safeCall(engine.onnewfriend, friend);
-			}
-		    },
 		    CHAT_MESSAGE: function(chatMessage) {
 			var author = null;
 			var recipient = null;
@@ -73,15 +72,11 @@ var safeCall = function(f) {
 			chatMessage.echo = false;
 			if (chatMessage.authorId == engine.id) {
 			    author = new User(id, '', 'Me');
-			    recipient = JSLINQ(engine.users).First(function(u) {
-				return u.id == chatMessage.recipientId;
-			    });
+			    recipient = engine.users[chatMessage.recipientId];
 			    chatMessage.echo = true;
 			    target = recipient;
 			} else {
-			    author = JSLINQ(engine.users).First(function(u) {
-				return u.id == chatMessage.authorId;
-			    });
+			    author = [chatMessage.authorId];
 			    recipient = new User(id, '', 'Me');
 			    target = author;
 			}
@@ -90,24 +85,22 @@ var safeCall = function(f) {
 			target.pendingChatMessages.push(chatMessage);
 			safeCall(target.onChatMessage);
 		    },
-		    GET_FRIEND_REQUESTS: function(users) {
-			$.each(users, function(index, user) {
-			    engine.bindFriendRequest(user);
-			});
-			safeCall(engine.ongotfriendrequests, engine.friendRequests);
-		    },
-		    GET_REQUESTED_FRIENDS: function(users) {
-			$.each(users, function(index, user) {
-			    engine.bindRequestedFriend(user);
-			});
-			safeCall(engine.ongotrequestedfriends, engine.requestedUsers);
-		    },
 		    FRIEND_REQUESTED: function(user) {
 			engine.bindRequestedFriend(user);
 			safeCall(engine.ongotrequestedfriend, u);
 		    }
 		}
 	    }),
+	    updateUser: function(user) {
+		if (user.id in engine.users) {
+		    engine.users[user.id].online = user.online;
+		    safeCall(engine.onstatechanged, engine.users[user.id]);
+		} else {
+		    engine.users[user.id] = user;
+		    engine.bindUser(engine.users[user.id]);
+		    safeCall(engine.onnewfriend, engine.users[user.id]);
+		}
+	    },
 	    getFriends: function() {
 		engine.webSocket.send('GET_FRIENDS');
 	    },
@@ -115,16 +108,15 @@ var safeCall = function(f) {
 		engine.webSocket.send('SEARCH', words);
 	    },
 	    bindUser: function(user) {
-		var u = new User(user);
-		engine.users.push(u);
-		u.sendChatMessage = function(chatMessage) {
+		user.pendingChatMessages = new Array();
+		user.chatMessages = new Array();
+		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
 		}
-		return u;
 	    },
 	    bindRequestedFriend: function(request) {
 		var u = new User(request);
-			    engine.requestedUsers.push(u);
+		engine.requestedUsers.push(u);
 	    },
 	    bindFriendRequest: function(request) {
 		var u = new User(request);

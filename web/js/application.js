@@ -77,10 +77,10 @@
 	$channelButton.click(function() {
 	   engine.createChannel($channelInput.val());
 	});
-	engine.onconnected=function() {
-	    engine.getFriends();
-	    engine.getFriendRequests();
-	    engine.getRequestedFriends();
+	engine.oninitialized=function() {
+	    $.each(engine.friends, function(index, friendId) {
+		processFriend(engine.users[friendId]);
+	    });
 	};
 	engine.onsearchresult = function(users) {
 	    $.each(users, function(index, user) {
