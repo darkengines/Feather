@@ -9,7 +9,7 @@ var safeCall = function(f) {
 	    id: id,
 	    uuid: uuid,
 	    users: new Array(),
-	    foundUsers: new Array(),
+	    foundUsers: {},
 	    requestedUsers: new Array(),
 	    friendRequests: new Array(),
 	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
@@ -35,39 +35,15 @@ var safeCall = function(f) {
 			engine.updateUser(user);
 		    },
 		    SEARCH: function(friends) {
-			engine.foundUsers.length = 0;
+			engine.foundUsers = {};
 			$.each(friends, function(index, friend) {
 			    var user = new User(friend);
 			    user.makeFriend = function() {
 				engine.webSocket.send('MAKE_FRIEND', user.id);
 			    };
-			    engine.foundUsers.push(user);
+			    engine.foundUsers[user.id]=user;
 			});
 			safeCall(engine.onsearchresult, engine.foundUsers);
-		    },
-		    FRIEND_REQUEST: function(request) {
-			engine.users[request.user.id] = request.user;
-			engine.friendRequests[request.id] = {
-                            id: request.id,
-                            user: request.user.id
-                        }
-                        engine.bindFriendRequest(engine.friendRequests[request.id]);
-			safeCall(engine.onfriendrequest, engine.users[request.user.id]);
-		    },
-		    REJECT_FRIEND_REQUEST: function(user) {
-			var index = null;
-			var request =null;
-			$.each(engine.friendRequests, function(i, u) {
-			    if (u.id == user.id) {
-				index = i;
-				request = u;
-				return false;
-			    } 
-			});
-			if (index != null) {
-			    engine.friendRequests = engine.friendRequests.slice(0, index-1).concat(engine.friendRequests.slice(index + 1));
-			    safeCall(request.onrejected);
-			}
 		    },
 		    CHAT_MESSAGE: function(chatMessage) {
 			var author = null;
@@ -80,7 +56,7 @@ var safeCall = function(f) {
 			    chatMessage.echo = true;
 			    target = recipient;
 			} else {
-			    author = [chatMessage.authorId];
+			    author = engine.users[chatMessage.authorId];
 			    recipient = new User(id, '', 'Me');
 			    target = author;
 			}
@@ -89,9 +65,57 @@ var safeCall = function(f) {
 			target.pendingChatMessages.push(chatMessage);
 			safeCall(target.onChatMessage);
 		    },
-		    FRIEND_REQUESTED: function(user) {
-			engine.bindRequestedFriend(user);
-			safeCall(engine.ongotrequestedfriend, u);
+		    FRIEND_REQUEST: function(request) {
+			engine.users[request.user.id] = request.user;
+			engine.friendRequests[request.id] = {
+                            id: request.id,
+                            user: request.user.id
+                        }
+                        engine.bindFriendRequest(engine.friendRequests[request.id]);
+			safeCall(engine.onfriendrequest, engine.friendRequests[request.id]);
+		    },
+		    FRIEND_REQUESTED: function(request) {
+			if (request.user.id in engine.users) {
+			    engine.updateUser(request.user);
+			} else {
+			    engine.users[request.user.id] = request.user;
+			}
+			engine.requestedFriends[request.id] = {id: request.id, user: request.user.id};
+			engine.bindRequestedFriend(engine.requestedFriends[request.id]);
+			safeCall(engine.onrequestedfriend, engine.requestedFriends[request.id]);
+		    },
+		    ACCEPTED_FRIEND_REQUEST: function(id) {
+			var request = engine.requestedFriends[id];
+			delete engine.requestedFriends[id];
+			safeCall(request.deleted);
+			var user = engine.users[request.user];
+			engine.friends[user.id] = user.id;
+			engine.bindUser(engine.users[user.id]);
+			safeCall(engine.onnewfriend, user);
+		    },
+		    FRIEND_REQUEST_ACCEPTED: function(id) {
+			var request = engine.friendRequests[id];
+			delete engine.friendRequests[id];
+			safeCall(request.deleted);
+			var user = engine.users[request.user];
+			engine.friends[user.id] = user.id;
+			engine.bindUser(engine.users[user.id]);
+			safeCall(engine.onnewfriend, user);
+		    },
+		    FRIEND_REQUEST_REJECTED: function(id) {
+			var request = engine.friendRequests[id];
+			delete engine.friendRequests[id];
+			safeCall(request.deleted);
+		    },
+		    REJECTED_FRIEND_REQUEST: function(id) {
+			var request = engine.requestedFriends[id];
+			delete engine.requestedFriends[id];
+			safeCall(request.deleted);
+		    },
+		    CHANNEL_CREATED: function(channelData) {
+			engine.channels[channelData.id] = channelData;
+			engine.bindChannel(engine.channels[channelData.id]);
+			safeCall(engine.onnewchannel, engine.channels[channelData.id]);
 		    }
 		}
 	    }),
@@ -100,9 +124,6 @@ var safeCall = function(f) {
 		    engine.users[user.id].online = user.online;
 		    safeCall(engine.users[user.id].onstatechanged);
 		}
-	    },
-	    getFriends: function() {
-		engine.webSocket.send('GET_FRIENDS');
 	    },
 	    search: function(words) {
 		engine.webSocket.send('SEARCH', words);
@@ -119,22 +140,20 @@ var safeCall = function(f) {
 		engine.requestedUsers.push(u);
 	    },
 	    bindFriendRequest: function(request) {
-		var user = engine.users[request.user];
-		user.makeFriend = function() {
-		    engine.webSocket.send('MAKE_FRIEND', user.id);
+		request.accept = function() {
+		    engine.webSocket.send('ACCEPT_FRIEND_REQUEST', request.id);
 		}
-		user.rejectFriend = function() {
-		    engine.webSocket.send('REJECT_FRIEND_REQUEST', user.id);
+		request.reject = function() {
+		    engine.webSocket.send('REJECT_FRIEND_REQUEST', request.id);
 		}
-	    },
-	    getFriendRequests: function() {
-		engine.webSocket.send('GET_FRIEND_REQUESTS');
-	    },
-	    getRequestedFriends: function() {
-		engine.webSocket.send('GET_REQUESTED_FRIENDS');
 	    },
 	    createChannel: function(name) {
 		engine.webSocket.send('CREATE_CHANNEL', name);
+	    },
+	    bindChannel: function(channel) {
+		channel.sendChatMessage = function(message) {
+		    engine.webSocket.send('CHANNEL_CHAT_MESSAGE', {channel_id: channel.id, content: message});
+		}
 	    }
 	}
 	return engine;

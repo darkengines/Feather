@@ -59,19 +59,7 @@
 	    friend.label = $friend;
 	    $friends.append($friend);
 	}
-	engine.ongetfriends = function(friends) {
-	    $.each(friends, function(index, friend) {
-		processFriend(friend);
-	    });
-	};
 	engine.onnewfriend = function(user) {
-	    var u = JSLINQ(engine.friendRequests).First(function(u) {
-		return u.id == user.id
-	    });
-	    if (u != null) {
-		var $label = u.label;
-		$label.remove();
-	    }
 	    processFriend(user);
 	}
 	$searchInput.bind('keyup blur', function() {
@@ -83,6 +71,7 @@
 	});
 	$channelButton.click(function() {
 	   engine.createChannel($channelInput.val());
+	   return false;
 	});
 	engine.oninitialized=function() {
 	    $.each(engine.friends, function(index, friendId) {
@@ -108,33 +97,33 @@
 		$searchOutput.append($friend);
 	    });
 	};
-	engine.ongotrequestedfriend = function(user) {
-	    var friend = JSLINQ(engine.foundUsers).First(function(u) {
-		return u.id == user.id
-	    });
-	    if (friend != null) {
-		var label = friend.label;
-		$('.Add', label).remove();
-	    }
+	engine.onrequestedfriend = function(request) {
+	    bindRequestedFriend(request);
 	}
 	engine.onfriendrequest = function(request) {
 	    bindFriendRequest(request);
 	};
-	engine.ongotfriendrequests = function(users) {
-	    $friendRequests.empty();
-	    $.each(users, function(index, user) {
-		bindFriendRequest(user);
-	    });
-	}
+	
+	engine.onnewchannel = function(channel) {
+	    bindChannel(channel);
+	};
+	
+	var bindChannel = function(channel) {
+	    
+	};
+	
 	var bindFriendRequest = function(request) {
+	    request.deleted = function() {
+		request.label.remove();
+	    }
             var user = engine.users[request.user];
 	    var $accept = $('<div class="AcceptFriendRequest"></div>');
 		$accept.click(function() {
-		    user.makeFriend();
+		    request.accept();
 		});
 		var $reject = $('<div class="RejectFriendRequest"></div>');
 		$reject.click(function() {
-		    user.rejectFriend();
+		    request.reject();
 		});
 		var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
 		if (user.online) {
@@ -148,6 +137,9 @@
 		}
 		request.label = $request;
 		$friendRequests.append($request);
+	};
+	var bindRequestedFriend = function(request) {
+	    $('.Add', engine.foundUsers[request.user].label).remove();
 	};
 	$('.Form.Join').not('.Inline').each(function() {
 	    var $container = $(this);
@@ -224,6 +216,13 @@
 		    }
 		}
 	    });
+	});
+	$('.Hiddable').each(function () {
+	    var $container = $(this);
+	   var $h3 =  $container.prev();
+	   $h3.click(function() {
+	      $container.toggle('blind'); 
+	   });
 	});
 	$('.Form.Login').not('.Inline').each(function() {
 	    var $container = $(this);

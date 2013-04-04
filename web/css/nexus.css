@@ -367,7 +367,7 @@ table td{
     padding: 0;
     margin: 0;
 }
-.Table ul {
+.Table > ul {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -377,20 +377,20 @@ table td{
     background: #00A0D1;
     border-radius: 4px;
 }
-.Table ul li {
+.Table > ul li {
     margin: 0;
     padding: 0;
     display: inline-block;
     border-left: solid 1px #dddddd;
 }
-.Table ul li[aria-selected=true] a {
+.Table > ul li[aria-selected=true] a {
     border-radius: 4px;
     background-color: rgba(200, 200, 200, 0.5);
 }
-.Table ul li:first-child {
+.Table > ul li:first-child {
     border-left: none;
 }
-.Table ul li a {
+.Table > ul li a {
     background-size: 16px 16px;
     background-repeat: no-repeat;
     background-position: 0 50%;
@@ -435,4 +435,21 @@ table td{
     text-decoration: none;
     border: none;
     right: 24px;
+}
+ul.Participants {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+ul.Participants li.Participant {
+    display: block;
+    height: 14px;
+    border: 0;
+    margin: 0;
+}
+ul.Participants li.Participant:nth-child(2n) {
+    background-color: #fff;
+}
+ul.Participants li.Participant:nth-child(2n+1) {
+    background-color: rgba(218, 229, 255, 0.3);
 }
