@@ -9,6 +9,15 @@
 	var $channelForm = $('form.Channel');
 	var $channelButton = $('submit', $channelForm);
 	var $channelInput = $('.ChannelInput', $channelForm);
+	var $remoteMedias = $('.RemoteMedias');
+	var $localMedias = $('.LocalMedias');
+	var $callButton = $('.Camera');
+	
+	$callButton.click(function() {
+	    if (selectedUser != null) {
+		selectedUser.call();
+	    }
+	});
 	
 	var chat = new Chat($chat);
 	chat.onSend = function(message) {
@@ -20,16 +29,26 @@
 		selectedUser.sendChatMessage(chatMessage);
 	    }
 	}
-	
+	chat.onstream = function() {
+	    if (selectedUser != null) {
+		if (selectedUser.receivingLocalStream) {
+		    selectedUser.hangUp(function() {
+			
+		    });
+		} else {
+		    selectedUser.call();
+		}
+	    }
+	}
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
-        function processFriend(friend) {
-            friend.onstatechanged = function() {
-                if (friend.online) {
-                    friend.label.removeClass('Offline').addClass('Online');
-                } else {
-                    friend.label.removeClass('Online').addClass('Offline');
-                }
-            }
+	function processFriend(friend) {
+	    friend.onstatechanged = function() {
+		if (friend.online) {
+		    friend.label.removeClass('Offline').addClass('Online');
+		} else {
+		    friend.label.removeClass('Online').addClass('Offline');
+		}
+	    }
 	    friend.onChatMessage = function() {
 		if (selectedUser != null && selectedUser.id == friend.id) {
 		    chat.loadMessages(friend.pendingChatMessages);
@@ -39,6 +58,13 @@
 		} else {
 		    alert('CACAAAAA ! t\'a un message !! CACA il faut cliquer sur l\'user d\'abord !! (CACA DANS LA BOUCHE)');
 		}
+	    }
+	    friend.onstream = function() {
+		chat.addRemoteStream(friend.stream);
+		chat.setStreaming(true);
+	    }
+	    friend.onlocalstream = function() {
+		chat.addLocalStream(engine.localStream);
 	    }
 	    var $friend = $('<div class="User">'+friend.displayName+'</div>');
 	    if (friend.online) {
@@ -70,8 +96,8 @@
 	    }
 	});
 	$channelButton.click(function() {
-	   engine.createChannel($channelInput.val());
-	   return false;
+	    engine.createChannel($channelInput.val());
+	    return false;
 	});
 	engine.oninitialized=function() {
 	    $.each(engine.friends, function(index, friendId) {
@@ -116,27 +142,27 @@
 	    request.deleted = function() {
 		request.label.remove();
 	    }
-            var user = engine.users[request.user];
+	    var user = engine.users[request.user];
 	    var $accept = $('<div class="AcceptFriendRequest"></div>');
-		$accept.click(function() {
-		    request.accept();
-		});
-		var $reject = $('<div class="RejectFriendRequest"></div>');
-		$reject.click(function() {
-		    request.reject();
-		});
-		var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
-		if (user.online) {
-		    $request.addClass('Online');
-		} else {
-		    $request.addClass('Offline');
-		}
-		$request.append($reject).append($accept);
-		request.onrejected = function() {
-		    request.label.remove();
-		}
-		request.label = $request;
-		$friendRequests.append($request);
+	    $accept.click(function() {
+		request.accept();
+	    });
+	    var $reject = $('<div class="RejectFriendRequest"></div>');
+	    $reject.click(function() {
+		request.reject();
+	    });
+	    var $request = $('<div class="User FriendRequest">'+user.displayName+'</div>');
+	    if (user.online) {
+		$request.addClass('Online');
+	    } else {
+		$request.addClass('Offline');
+	    }
+	    $request.append($reject).append($accept);
+	    request.onrejected = function() {
+		request.label.remove();
+	    }
+	    request.label = $request;
+	    $friendRequests.append($request);
 	};
 	var bindRequestedFriend = function(request) {
 	    $('.Add', engine.foundUsers[request.user].label).remove();
@@ -155,7 +181,7 @@
                             
 			    } else {
 				$.ajax({
-				    url: 'http://127.0.0.1:8080/nexus/login',
+				    url: 'http://192.168.1.2:8080/nexus/login',
 				    data: data,
 				    success: function(data) {
 					if (data.code) {
@@ -219,10 +245,10 @@
 	});
 	$('.Hiddable').each(function () {
 	    var $container = $(this);
-	   var $h3 =  $container.prev();
-	   $h3.click(function() {
-	      $container.toggle('blind'); 
-	   });
+	    var $h3 =  $container.prev();
+	    $h3.click(function() {
+		$container.toggle('blind'); 
+	    });
 	});
 	$('.Form.Login').not('.Inline').each(function() {
 	    var $container = $(this);
@@ -231,7 +257,7 @@
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({
-			url: 'http://127.0.0.1:8080/nexus/login',
+			url: 'http://192.168.1.2:8080/nexus/login',
 			data: data,
 			success: function(data) {
 			    if (data.code) {
@@ -274,7 +300,7 @@
 	    var result;
 	    $('submit', $container).click(function() {
 		$.ajax({
-		    url: '127.0.0.1:8080/nexus/login',
+		    url: '192.168.1.2:8080/nexus/login',
 		    data: $form.serialize(),
 		    asynch: false,
 		    success: function(response) {

@@ -12,7 +12,7 @@ var safeCall = function(f) {
 	    foundUsers: {},
 	    requestedUsers: new Array(),
 	    friendRequests: new Array(),
-	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
+	    webSocket: new JWebSocket('ws://192.168.1.2:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
 		    engine.webSocket.send('INIT');
@@ -68,10 +68,10 @@ var safeCall = function(f) {
 		    FRIEND_REQUEST: function(request) {
 			engine.users[request.user.id] = request.user;
 			engine.friendRequests[request.id] = {
-                            id: request.id,
-                            user: request.user.id
-                        }
-                        engine.bindFriendRequest(engine.friendRequests[request.id]);
+			    id: request.id,
+			    user: request.user.id
+			}
+			engine.bindFriendRequest(engine.friendRequests[request.id]);
 			safeCall(engine.onfriendrequest, engine.friendRequests[request.id]);
 		    },
 		    FRIEND_REQUESTED: function(request) {
@@ -80,7 +80,10 @@ var safeCall = function(f) {
 			} else {
 			    engine.users[request.user.id] = request.user;
 			}
-			engine.requestedFriends[request.id] = {id: request.id, user: request.user.id};
+			engine.requestedFriends[request.id] = {
+			    id: request.id, 
+			    user: request.user.id
+			};
 			engine.bindRequestedFriend(engine.requestedFriends[request.id]);
 			safeCall(engine.onrequestedfriend, engine.requestedFriends[request.id]);
 		    },
@@ -116,6 +119,25 @@ var safeCall = function(f) {
 			engine.channels[channelData.id] = channelData;
 			engine.bindChannel(engine.channels[channelData.id]);
 			safeCall(engine.onnewchannel, engine.channels[channelData.id]);
+		    },
+		    OFFER: function(offer) {
+			var user = engine.users[offer.caller];
+			user.answer(offer);
+		    },
+		    ANSWER: function(answer) {
+			var user = engine.users[answer.callee];
+			var peer = user.peers[answer.token];
+			peer.setRemoteDescription(new RTCSessionDescription(answer.description));
+			safeCall(user.onanswer, answer);
+		    },
+		    ICE_CANDIDATE: function(iceCandidate) {
+			var user = engine.users[iceCandidate.author];
+			var peer = user.peers[iceCandidate.token];
+			if (peer == null) {
+			    user.iceCandidates.push(new RTCIceCandidate(iceCandidate.iceCandidate));
+			} else {
+			    peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
+			}
 		    }
 		}
 	    }),
@@ -129,10 +151,187 @@ var safeCall = function(f) {
 		engine.webSocket.send('SEARCH', words);
 	    },
 	    bindUser: function(user) {
+		user.peers = new Array();
+		user.inputPeerId = null;
+		user.ouputPeerId = null;
 		user.pendingChatMessages = new Array();
+		user.iceCandidates = new Array();
 		user.chatMessages = new Array();
 		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
+		};
+		user.call = function() {
+		    if (user.ouputStreamId == null) {
+			var key = new Date().getTime();
+			user.outputPeerId = key;
+			user.peers[key] = engine.createPeerConnection();
+			var peer = user.peers[key];
+			peer.onicecandidate = function(e) {
+			    engine.onIceCandidate(e, user, key);
+			};
+			peer.onaddstream = function(e) {
+			    user.stream = e.stream;
+			    safeCall(user.onstream, e.stream);
+			    user.receivingLocalStream = true;
+			};
+			peer.onremovestream = user.streamRemoved;
+			engine.doGetUserMedia(function(stream) {
+			    engine.localStream = stream;
+			    peer.addStream(engine.localStream);
+			    user.receivingLocalStream = true;
+			    safeCall(user.onlocalstream);
+			    var constraints = {
+				"optional": [],
+				"mandatory": {
+				    "MozDontOfferDataChannel": true
+				}
+			    };
+			    // temporary measure to remove Moz* constraints in Chrome
+			    if (webrtcDetectedBrowser === "chrome") {
+				for (prop in constraints.mandatory) {
+				    if (prop.indexOf("Moz") != -1) {
+					delete constraints.mandatory[prop];
+				    }
+				}
+			    }
+			    constraints = mergeConstraints(constraints, sdpConstraints);
+			    peer.createOffer(function(description) {
+				engine.onGotLocalDescription(description, user, 'OFFER', key);
+			    }, null, constraints) ;
+			});
+		    }
+		};
+		user.answer = function(offer) {
+		    if (user.inputStreamId == null) {
+			var key = offer.token;
+			user.inputPeerId = key;
+			user.peers[key] = engine.createPeerConnection();
+			;
+			var peer = user.peers[key];
+			peer.onicecandidate = peer.onicecandidate = function(e) {
+			    engine.onIceCandidate(e, user, key);
+			};
+			peer.onaddstream = function(e) {
+			    user.stream = e.stream;
+			    safeCall(user.onstream, e.stream);
+			    user.receivingLocalStream = true;
+			}
+			peer.onremovestream = user.streamRemoved;
+			peer.setRemoteDescription(new RTCSessionDescription(offer.description));
+			while (user.iceCandidates.length) {
+			    peer.addIceCandidate(user.iceCandidates.pop());
+			}
+			var constraints = {
+			    "optional": [],
+			    "mandatory": {
+				"MozDontOfferDataChannel": true
+			    }
+			};
+			// temporary measure to remove Moz* constraints in Chrome
+			if (webrtcDetectedBrowser === "chrome") {
+			    for (prop in constraints.mandatory) {
+				if (prop.indexOf("Moz") != -1) {
+				    delete constraints.mandatory[prop];
+				}
+			    }
+			}
+			constraints = mergeConstraints(constraints, sdpConstraints);
+			peer.createAnswer(function(description) {
+			    engine.onGotLocalDescription(description, user, 'ANSWER', key);				    
+			}, null, constraints);
+		    }
+		};
+	    },
+	    createPeerConnection: function() {
+		var pc_config = {
+		    "iceServers": [{
+			"url": "stun:stun.l.google.com:19302"
+		    }]
+		};
+		var pc_constraints = {
+		    "optional": [{
+			"DtlsSrtpKeyAgreement": true
+		    }]
+		};
+		// Force the use of a number IP STUN server for Firefox.
+		if (webrtcDetectedBrowser == "firefox") {
+		    pc_config = {
+			"iceServers": [{
+			    "url": "stun:23.21.150.121"
+			}]
+		    };
+		}
+		try {
+		    var pc = new RTCPeerConnection(pc_config, pc_constraints);
+		} catch (e) {
+		    return;
+		}
+		return pc;
+	    },
+	    onIceCandidate: function(e, user, key) {
+		var peer = user.peers[key];
+		if (e.candidate) {
+		    engine.webSocket.send('ICE_CANDIDATE', {
+			recipient: user.id,
+			iceCandidate: e.candidate,
+			token: key
+		    });
+		} else {
+		    user.emptyIceCandidateCount++;
+		    if (user.emptyIceCandidateCount > 16) {
+			user.stream = null;
+			peer.close();
+			peer = null;
+			user.onHangUp();
+			user.emptyIceCandidateCount = 0;	
+		    }
+		}
+	    },
+	    onGotLocalDescription: function(description, user, type, key) {
+		var caller, callee;
+		var peer = user.peers[key];
+		switch (type) {
+		    case ('OFFER'): {
+			caller = $.cookie('id');
+			callee = user.id;
+			break;
+		    }
+		    case ('ANSWER'): {
+			caller = user.id;
+			callee = $.cookie('id');
+			break;
+		    }
+		    default: {
+			throw new Exception(type+' not supported');
+		    }
+		}
+		description.sdp = preferOpus(description.sdp);
+		peer.setLocalDescription(description);
+		engine.webSocket.send(type, {
+		    caller: caller,
+		    callee: callee,
+		    description: description,
+		    token: key
+		});
+	    },
+	    doGetUserMedia: function(successCallback) {
+		if (engine.localStream != null) {
+		    successCallback(engine.localStream);
+		} else {
+		    // Call into getUserMedia via the polyfill (adapter.js).
+		    var constraints = {
+			"mandatory": {},
+			"optional": []
+		    };
+		    getUserMedia({
+			'audio': true,
+			'video': constraints
+		    }, function(stream) {
+			successCallback(stream);
+		    },
+		    function() {
+			alert('GET USER MEDIA FAILURE')
+		    });
 		}
 	    },
 	    bindRequestedFriend: function(request) {
@@ -152,10 +351,97 @@ var safeCall = function(f) {
 	    },
 	    bindChannel: function(channel) {
 		channel.sendChatMessage = function(message) {
-		    engine.webSocket.send('CHANNEL_CHAT_MESSAGE', {channel_id: channel.id, content: message});
+		    engine.webSocket.send('CHANNEL_CHAT_MESSAGE', {
+			channel_id: channel.id, 
+			content: message
+		    });
 		}
 	    }
 	}
 	return engine;
+    };
+    //////////////////////////////////
+    // STUPID STUFF
+    //////////////////////////////////
+    function preferOpus(sdp) {
+	var sdpLines = sdp.split('\r\n');
+	// Search for m line.
+	for (var i = 0; i < sdpLines.length; i++) {
+	    if (sdpLines[i].search('m=audio') !== -1) {
+		var mLineIndex = i;
+		break;
+	    }
+	}
+	if (mLineIndex === null) return sdp;
+	// If Opus is available, set it as the default in m line.
+	for (var i = 0; i < sdpLines.length; i++) {
+	    if (sdpLines[i].search('opus/48000') !== -1) {
+		var opusPayload = extractSdp(sdpLines[i], /:(\d+) opus\/48000/i);
+		if (opusPayload) sdpLines[mLineIndex] = setDefaultCodec(sdpLines[mLineIndex], opusPayload);
+		break;
+	    }
+	}
+	// Remove CN in m line and sdp.
+	sdpLines = removeCN(sdpLines, mLineIndex);
+	sdp = sdpLines.join('\r\n');
+	return sdp;
+    }
+
+    function extractSdp(sdpLine, pattern) {
+	var result = sdpLine.match(pattern);
+	return (result && result.length == 2) ? result[1] : null;
+    }
+    // Set the selected codec to the first in m line.
+    function setDefaultCodec(mLine, payload) {
+	var elements = mLine.split(' ');
+	var newLine = new Array();
+	var index = 0;
+	for (var i = 0; i < elements.length; i++) {
+	    if (index === 3) // Format of media starts from the fourth.
+		newLine[index++] = payload; // Put target payload to the first.
+	    if (elements[i] !== payload) newLine[index++] = elements[i];
+	}
+	return newLine.join(' ');
+    }
+    // Strip CN from sdp before CN constraints is ready.
+    function removeCN(sdpLines, mLineIndex) {
+	var mLineElements = sdpLines[mLineIndex].split(' ');
+	// Scan from end for the convenience of removing an item.
+	for (var i = sdpLines.length - 1; i >= 0; i--) {
+	    var payload = extractSdp(sdpLines[i], /a=rtpmap:(\d+) CN\/\d+/i);
+	    if (payload) {
+		var cnPos = mLineElements.indexOf(payload);
+		if (cnPos !== -1) {
+		    // Remove CN payload from m line.
+		    mLineElements.splice(cnPos, 1);
+		}
+		// Remove CN line in sdp
+		sdpLines.splice(i, 1);
+	    }
+	}
+	sdpLines[mLineIndex] = mLineElements.join(' ');
+	return sdpLines;
+    }
+    function mergeConstraints(cons1, cons2) {
+	var merged = cons1;
+	for (var name in cons2.mandatory) {
+	    merged.mandatory[name] = cons2.mandatory[name];
+	}
+	merged.optional.concat(cons2.optional);
+	return merged;
+    }
+    var sdpConstraints = {
+	'mandatory': {
+	    'OfferToReceiveAudio': true,
+	    'OfferToReceiveVideo': true
+	}
+    };
+    var mediaConstraints = {
+	"mandatory": {},
+	"optional": []
+    };
+    var mediaConfig = {
+	'audio': true,
+	'video': mediaConstraints
     };
 })();
