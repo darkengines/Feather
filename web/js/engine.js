@@ -160,7 +160,7 @@ var safeCall = function(f) {
 		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
 		};
-		user.call = function() {
+		user.call = function(callback) {
 		    if (user.ouputStreamId == null) {
 			var key = new Date().getTime();
 			user.outputPeerId = key;
@@ -171,7 +171,6 @@ var safeCall = function(f) {
 			};
 			peer.onaddstream = function(e) {
 			    user.stream = e.stream;
-			    safeCall(user.onstream, e.stream);
 			    user.receivingLocalStream = true;
 			};
 			peer.onremovestream = user.streamRemoved;
@@ -197,6 +196,7 @@ var safeCall = function(f) {
 			    constraints = mergeConstraints(constraints, sdpConstraints);
 			    peer.createOffer(function(description) {
 				engine.onGotLocalDescription(description, user, 'OFFER', key);
+				callback();
 			    }, null, constraints) ;
 			});
 		    }
@@ -206,7 +206,6 @@ var safeCall = function(f) {
 			var key = offer.token;
 			user.inputPeerId = key;
 			user.peers[key] = engine.createPeerConnection();
-			;
 			var peer = user.peers[key];
 			peer.onicecandidate = peer.onicecandidate = function(e) {
 			    engine.onIceCandidate(e, user, key);
@@ -214,9 +213,20 @@ var safeCall = function(f) {
 			peer.onaddstream = function(e) {
 			    user.stream = e.stream;
 			    safeCall(user.onstream, e.stream);
-			    user.receivingLocalStream = true;
 			}
-			peer.onremovestream = user.streamRemoved;
+			peer.onstatechange = function() {
+			    if (peer.iceState == 'disconnected') {
+				if (user.stream != null) {
+				    safeCall(user.streamremoved);
+				    user.stream = null;
+				}
+				peer.close();
+				delete user.peers[key];
+			    }
+			}
+			peer.onremovestream = function() {
+			    safeCall(user.streamremoved)
+			};
 			peer.setRemoteDescription(new RTCSessionDescription(offer.description));
 			while (user.iceCandidates.length) {
 			    peer.addIceCandidate(user.iceCandidates.pop());
@@ -241,6 +251,17 @@ var safeCall = function(f) {
 			}, null, constraints);
 		    }
 		};
+		user.hangUp = function(callback) {
+		    if (user.outputPeerId in user.peers && user.receivingLocalStream) {
+			var peer = user.peers[user.outputPeerId];
+			peer.removeStream(engine.localStream);
+			peer.close();
+			peer = null;
+			delete user.peers[user.outputPeerId];
+			user.receivingLocalStream = false;
+			callback();
+		    }
+		}
 	    },
 	    createPeerConnection: function() {
 		var pc_config = {

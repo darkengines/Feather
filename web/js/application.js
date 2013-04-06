@@ -13,12 +13,6 @@
 	var $localMedias = $('.LocalMedias');
 	var $callButton = $('.Camera');
 	
-	$callButton.click(function() {
-	    if (selectedUser != null) {
-		selectedUser.call();
-	    }
-	});
-	
 	var chat = new Chat($chat);
 	chat.onSend = function(message) {
 	    if (selectedUser != null) {
@@ -33,10 +27,13 @@
 	    if (selectedUser != null) {
 		if (selectedUser.receivingLocalStream) {
 		    selectedUser.hangUp(function() {
-			
+			chat.removeLocalStream(engine.localStream);
+			chat.setStreaming(false);
 		    });
 		} else {
-		    selectedUser.call();
+		    selectedUser.call(function() {
+			chat.setStreaming(true);
+		    });
 		}
 	    }
 	}
@@ -61,7 +58,6 @@
 	    }
 	    friend.onstream = function() {
 		chat.addRemoteStream(friend.stream);
-		chat.setStreaming(true);
 	    }
 	    friend.onlocalstream = function() {
 		chat.addLocalStream(engine.localStream);
@@ -82,6 +78,9 @@
 		    chat.loadMessages(friend.chatMessages);
 		}
 	    });
+	    friend.streamremoved = function() {
+		chat.removeRemoteStream(friend.stream);
+	    }
 	    friend.label = $friend;
 	    $friends.append($friend);
 	}

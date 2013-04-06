@@ -4,11 +4,13 @@
 	    root: $root,
 	    input: $('.Input', $root),
 	    textContent: $('.TextContent'),
-	    localMedias: $('.LocalMedias'),
-	    remoteMedias: $('.RemoteMedias'),
+	    localMediasContainer: $('.LocalMedias'),
+	    remoteMediasContainer: $('.RemoteMedias'),
 	    notifications: $('.Notifications'),
 	    callButton: $('.Camera'),
 	    streaming: false,
+	    remoteMedias: new Array(),
+	    localMedias: new Array(),
 	    
 	    setStreaming: function(b) {
 		chat.streaming = b;
@@ -32,13 +34,15 @@
 	    },
 	    addRemoteStream: function(stream) {
 		var $video = $('<video></video>');
-		chat.remoteMedias.append($video);
+		chat.remoteMedias[stream.id] = $video;
+		chat.remoteMediasContainer.append($video);
 		var video = $video.get(0);
 		attachMediaStream(video, stream);
+		stream.label = $video;
 		video.play();
 	    },
-	    removeRemoteStream: function() {
-		var $video = $('video', chat.remoteMedias);
+	    removeRemoteStream: function(stream) {
+		var $video = chat.remoteMedias[stream.id];
 		var video = $video.get(0);
 		video.pause();
 		video.src = null;
@@ -48,13 +52,14 @@
 	    },
 	    addLocalStream: function(stream) {
 		var $video = $('<video></video>');
-		chat.localMedias.append($video);
+		chat.localMedias[stream.id] = $video;
+		chat.localMediasContainer.append($video);
 		var video = $video.get(0);
 		attachMediaStream(video, stream);
 		video.play();
 	    },
-	    removeLocalStream: function() {
-		var $video = $('video', chat.localMedias);
+	    removeLocalStream: function(stream) {
+		var $video = chat.localMedias[stream.id];
 		var video = $video.get(0);
 		video.pause();
 		video.src = null;
