@@ -11,13 +11,17 @@
 	    notifications: $('.Notifications'),
 	    callButton: $('.Camera'),
 	    streaming: false,
-	    remoteMedias: new Array(),
-	    localMedias: new Array(),
+	    remoteMedias: {},
+	    localMedias: {},
+	    online: false,
 	    
 	    setOnline: function(b) {
+		chat.online = b;
 		if (b) {
-		    $root.addClass('Online');
+		    chat.inputTextContent.attr('contenteditable', 'true');
+		    $root.removeClass('Offline');
 		} else {
+		    chat.inputTextContent.attr('contenteditable', 'false');
 		    $root.addClass('Offline');
 		}
 	    },
@@ -41,6 +45,22 @@
 	    clear: function() {
 		chat.inputTextContent.empty();
 		chat.textContent.empty();
+		$.each(chat.remoteMedias, function(index, $video) {
+		   var video = $video.get(0) ;
+		   video.pause();
+		   video.src=null;
+		   video.source=null;
+		   $video.remove();
+		   delete chat.remoteMedias[index];
+		});
+		$.each(chat.localMedias, function(index, $video) {
+		   var video = $video.get(0) ;
+		   video.pause();
+		   video.src=null;
+		   video.source=null;
+		   $video.remove();
+		   delete chat.localMedias[index];
+		});
 	    },
 	    addRemoteStream: function(stream) {
 		var $video = $('<video></video>');
@@ -79,17 +99,25 @@
 	    }
 	};
 	chat.inputTextContent.keyup(function(e) {
-	    if (e.keyCode == 13) {
+	    if (chat.online) {
+		if (e.keyCode == 13) {
+		    chat.onSend(chat.inputTextContent.text());
+		    chat.inputTextContent.text('');
+		}	
+	    }
+	    return false;
+	});
+	chat.sendButton.click(function() {
+	    if (chat.online) {
 		chat.onSend(chat.inputTextContent.text());
 		chat.inputTextContent.text('');
 	    }
-	});
-	chat.sendButton.click(function() {
-	    chat.onSend(chat.inputTextContent.text());
-	    chat.inputTextContent.text('');
+	    return false;
 	});
 	chat.callButton.click(function() {
-	    chat.onstream();
+	    if (chat.online) {
+		chat.onstream();
+	    }
 	});
 	chat.input.scroll(function() {
 	    chat.sendButton.css('top', 2 + chat.input.scrollTop());

@@ -70,12 +70,17 @@
 	    }
 	    $friend.click(function() {
 		selectedUser = friend;
-		if (friend.online) {
-		    chat.clear();
-		    while (friend.pendingChatMessages.length > 0) {
-			friend.chatMessages.push(friend.pendingChatMessages.pop());
-		    }		    
-		    chat.loadMessages(friend.chatMessages);
+		chat.clear();
+		while (friend.pendingChatMessages.length > 0) {
+		    friend.chatMessages.push(friend.pendingChatMessages.pop());
+		}	    
+		chat.loadMessages(friend.chatMessages);
+		chat.setOnline(friend.online);
+		if (friend.receivingLocalStream) {
+		    chat.addLocalStream(engine.localStream);
+		}
+		if (friend.stream != null) {
+		    chat.addRemoteStream(friend.stream);
 		}
 	    });
 	    friend.streamremoved = function() {
