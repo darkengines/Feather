@@ -85,12 +85,10 @@
 	</div>
     </div>
     <div class="Right">
-	<div class="Content Contrast Main">
 	    <div class="Welcome">
 
 	    </div>
-	    <div class="Chat">
-		<h3>Talk</h3>
+	    <div class="Chat Contrast">
 		<div class="Header">
 		    <div class="LocalMedias"></div>
 		    <div class="RemoteMedias"></div>
@@ -107,12 +105,13 @@
 		    </div>
 		</div>
 		<div class="Options">
-		    <a href="#" class="Camera"><img src="image/camera.png"/></a>
+		    <a href="#" class="Button Camera"></a>
 		</div>
-		<div class="Contrast Input" contenteditable="true">
+		<div class="Contrast Input">
+		    <div contenteditable="true" class="TextContent"></div>
+		    <a contenteditable="false" class="Send Button">Send</a>
 		</div>
 	    </div>
-	</div>
     </div>
 </div>
 <%@ include file="footer.jsp" %>

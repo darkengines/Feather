@@ -2,8 +2,10 @@
     Chat = function($root) {
 	var chat = {
 	    root: $root,
-	    input: $('.Input', $root),
-	    textContent: $('.TextContent'),
+	    textContent: $('.Output .TextContent'),
+	    inputTextContent: $('.Input .TextContent'),
+	    input: $('.Input'),
+	    sendButton: $('.Input .Send'),
 	    localMediasContainer: $('.LocalMedias'),
 	    remoteMediasContainer: $('.RemoteMedias'),
 	    notifications: $('.Notifications'),
@@ -11,6 +13,14 @@
 	    streaming: false,
 	    remoteMedias: new Array(),
 	    localMedias: new Array(),
+	    
+	    setOnline: function(b) {
+		if (b) {
+		    $root.addClass('Online');
+		} else {
+		    $root.addClass('Offline');
+		}
+	    },
 	    
 	    setStreaming: function(b) {
 		chat.streaming = b;
@@ -29,7 +39,7 @@
 		});
 	    },
 	    clear: function() {
-		chat.input.empty();
+		chat.inputTextContent.empty();
 		chat.textContent.empty();
 	    },
 	    addRemoteStream: function(stream) {
@@ -68,15 +78,22 @@
 		$video = null
 	    }
 	};
-	chat.input.keyup(function(e) {
+	chat.inputTextContent.keyup(function(e) {
 	    if (e.keyCode == 13) {
-		chat.onSend(chat.input.text());
-		chat.input.text('');
+		chat.onSend(chat.inputTextContent.text());
+		chat.inputTextContent.text('');
 	    }
-        });
+	});
+	chat.sendButton.click(function() {
+	    chat.onSend(chat.inputTextContent.text());
+	    chat.inputTextContent.text('');
+	});
 	chat.callButton.click(function() {
 	    chat.onstream();
-	}); 
+	});
+	chat.input.scroll(function() {
+	    chat.sendButton.css('top', 2 + chat.input.scrollTop());
+	});
 	return chat;
     }
 })();
