@@ -4,100 +4,157 @@
 		<meta charset="utf-8">
 		<title>Feather</title>
 		<link rel="stylesheet" href="style.css" type="text/css" />
+		<script type="text/javascript" src="jquery.js"></script>
+		<script type="text/javascript" src="jqueryui.js"></script>
+		<script type="text/javascript" src="script.js"></script>
     </head>
     <body>
 		<div class="Container">
-			<div class="Content Left">
-				<div class="Contrast ">
+			<div class="Content Middle">
+				<div class="Controls">
 					<ul>
-						<li class="User">
-							Arnaud Davoise
-							<div class="Controls">
-								<div class="Icon Camera">
-								</div>
-								<div class="Icon Talk">
-								</div>
-							</div>
+						<li data-table="Home" class="Control Selected">
+							Home
 						</li>
-						<li class="User">
-							Florent Tollin
-							<div class="Controls">
-								<div class="Icon Camera">
-								</div>
-								<div class="Icon Talk">
-								</div>
-							</div>
+						<li data-table="Search" class="Control">
+							Search
 						</li>
-						<li class="Channel">
-							<span>Channel 1</span>
-							<ul>
-								<li class="User">
-									Arnaud Davoise
-									<div class="Controls">
-										<div class="Icon Camera">
-										</div>
-										<div class="Icon Talk">
-										</div>
-									</div>
-								</li>
-								<li class="User">
-									Florent Tollin
-									<div class="Controls">
-										<div class="Icon Camera">
-										</div>
-										<div class="Icon Talk">
-										</div>
-									</div>
-								</li>
-							</ul>
-						</li>
-						<li class="User">
-							Arnaud Davoise
-							<div class="Controls">
-								<div class="Icon Camera">
-								</div>
-								<div class="Icon Talk">
-								</div>
-							</div>
-						</li>
-						<li class="User">
-							Florent Tollin
-							<div class="Controls">
-								<div class="Icon Camera">
-								</div>
-								<div class="Icon Talk">
-								</div>
-							</div>
-						</li>
-					</ul>
-				</div>
-				<div class="Contrast SearchUser">
-					<label for="txtSearchUser">Search</label>
-					<input type="text" id="txtSearchUser"/>
-					<ul>
-						<li class="User">
-							Truc
-						</li>
-						<li class="User">
-							Machin
+						<li data-table="Requests" class="Control">
+							Friend requests
 						</li>
 					</ul>
 				</div>
 			</div>
-			<div class="Content Right">
-				<div class="Contrast Output">
-					Prout !
-				</div>
-				<div class="Buttons">
-					<div class="Button"><div class="Icon Camera"></div></div>
-				</div>
-				<div class="Contrast Input">
-					<div contenteditable="true" class="Content">
+			<div id="Home" class="Table Selected">
+				<div class="Content Left">
+					<div class="Contrast Users">
+						<div style="position: relative">
+							<label for="txtFilterUser">Filter</label>
+							<input type="text" id="txtFilterUser"/>
+						</div>
+						<ul>
+							<li class="User">
+								Arnaud Davoise
+								<div class="Controls">
+									<div class="Icon Camera">
+									</div>
+									<div class="Icon Talk">
+									</div>
+								</div>
+							</li>
+							<li class="User">
+								Florent Tollin
+								<div class="Controls">
+									<div class="Icon Camera">
+									</div>
+									<div class="Icon Talk">
+									</div>
+								</div>
+							</li>
+							<li class="Channel">
+								<span>Channel 1</span>
+								<ul>
+									<li class="User">
+										Arnaud Davoise
+										<div class="Controls">
+											<div class="Icon Camera">
+											</div>
+											<div class="Icon Talk">
+											</div>
+										</div>
+									</li>
+									<li class="User">
+										Florent Tollin
+										<div class="Controls">
+											<div class="Icon Camera">
+											</div>
+											<div class="Icon Talk">
+											</div>
+										</div>
+									</li>
+								</ul>
+							</li>
+							<li class="User">
+								Arnaud Davoise
+								<div class="Controls">
+									<div class="Icon Camera">
+									</div>
+									<div class="Icon Talk">
+									</div>
+								</div>
+							</li>
+							<li class="User">
+								Florent Tollin
+								<div class="Controls">
+									<div class="Icon Camera">
+									</div>
+									<div class="Icon Talk">
+									</div>
+								</div>
+							</li>
+						</ul>
 					</div>
-					<div class="Button Send">
-						Send !
+				</div>
+				<div class="Content Right">
+					<div class="Contrast Output">
+						Prout !
+					</div>
+					<div class="Buttons">
+						<div id="btnCamera" class="Button"><div class="Icon Camera"></div></div>
+					</div>
+					<div class="Contrast Input">
+						<div id="txtChat" contenteditable="true" class="Content">
+						</div>
+						<div id="btnChat" class="Button Send">
+							Send !
+						</div>
 					</div>
 				</div>
+			</div>
+			<div id="Search" class="Table">
+				<div class="Content Middle">
+					<div class="Box Search">
+						<div class="Field">
+							<label for="txtSearch">Search</label>
+							<input type="text" id="txtSearch"/>
+							<div id="btnSearch" class="Button">Search</div>
+						</div>
+					</div>
+					<div class="Contrast Search Users">
+						<ul>
+							<li class="User">
+								Arnaud Davoise
+							</li>
+							<li class="User">
+								Florent Tollin
+							</li>
+						</ul>
+					</div>
+					<div class="Contrast Requested Users">
+						<ul>
+							<li class="User">
+								Arnaud Davoise
+							</li>
+							<li class="User">
+								Florent Tollin
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div id="Requests" class="Table">
+			<div class="Content Middle">
+				<div class="Contrast Requests Users">
+						<ul>
+							<li class="User">
+								Arnaud Davoise
+							</li>
+							<li class="User">
+								Florent Tollin
+							</li>
+						</ul>
+					</div>
+					</div>
 			</div>
 		</div>
     </body>

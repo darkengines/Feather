@@ -193,7 +193,7 @@
 					} else {
 					    $.cookie('id', data.content.userId);
 					    $.cookie('uuid', data.content.uuid);
-					    window.location.href = 'nexus';
+					    window.location.href = 'test';
 					}
 				    }
 				});
@@ -269,7 +269,7 @@
 			    } else {
 				$.cookie('id', data.content.userId);
 				$.cookie('uuid', data.content.uuid);
-				window.location.href = 'nexus';
+				window.location.href = 'test';
 			    }
 			}
 		    });
@@ -313,7 +313,7 @@
 			} else {
 			    $.cookie('id', response.content.userId);
 			    $.cookie('uuid', response.content.uuid);
-			    window.location.href = 'nexus';
+			    window.location.href = 'test';
 			    result = false;
 			}
 		    }

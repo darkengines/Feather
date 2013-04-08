@@ -11,7 +11,7 @@ body {
 
 div.Container {
 	width: 100%;
-	height: 512px;
+	height: auto;
 	
 	background-color: rgba(200, 200, 200, 1);
 	
@@ -21,13 +21,49 @@ div.Container {
 div.Container div.Content {
 	vertical-align: top;
 	display: inline-block;
-	height: 100%;
 	margin: 4px 0 4px 0;
 	padding: 0;
+
 }
 
+div.Container div.Content + div.Content {
+	margin-top: 0px;
+}
+
+div.Container div.Content.Middle {
+	width: 1008px;
+	margin: 0px 4px 0px 4px;
+}
+div.Container div.Content.Middle div.Controls {
+	margin: 4px 4px 4px 4px;
+}
+div.Container div.Content.Middle div.Controls ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+div.Container div.Content.Middle div.Controls ul li.Control {
+	margin: 0;
+	padding: 4px 4px 4px 4px;
+	height: 20px;
+	line-height: 20px;
+	border-radius: 4px;
+	display: inline-block;
+	background-color: rgba(220,220,220,1);
+	cursor: pointer;
+	text-align: center;
+	min-width: 64px;
+	box-shadow: inset 0 0 4px rgba(240,240,240,1);
+}
+div.Container div.Content.Middle div.Controls ul li.Control.Selected {
+	background-color: rgba(240,240,240,1);
+	box-shadow: inset 0 0 4px rgba(60,60,60,1);
+}
+div.Container div.Content.Middle div.Controls ul li.Control:hover {
+	
+}
 div.Container div.Content.Left {
-	margin-left: 4px;
+	margin: 0 0 0 4px;
 	width: 246px;
 }
 
@@ -45,17 +81,17 @@ div.Container div.Contrast {
 	position: relative;
 }
 
-div.Container div.Contrast + div.Contrast {
+div.Container div.Contrast + div.Contrast.Users {
 	margin-top: 4px;
 }
 
-div.Container div.Content.Left div.Contrast ul {
+div.Container div.Content.Left div.Contrast.Users ul {
 	margin: 2px;
 	padding: 0;
 	list-style-type: none;
 	overflow: hidden;
 }
-div.Container div.Content.Left div.Contrast ul li{
+div.Container div.Content.Left div.Contrast.Users ul li{
 	width: 100%;
 	position: relative;
 	min-height: 21px;
@@ -63,19 +99,19 @@ div.Container div.Content.Left div.Contrast ul li{
 	margin: 0;
 	padding: 0 4px 0 4px;
 }
-div.Container div.Content.Left div.Contrast ul li.User {
+div.Container div.Content.Left div.Contrast.Users ul li.User {
 	cursor: pointer;
 }
-div.Container div.Content.Left div.Contrast ul li.User:hover {
+div.Container div.Content.Left div.Contrast.Users ul li.User:hover {
 	background-color: rgba(60, 60, 60, 0.45);
 }
-div.Container div.Content.Left div.Contrast ul li.Channel {
+div.Container div.Content.Left div.Contrast.Users ul li.Channel {
 	display: block;
 }
-div.Container div.Content.Left div.Contrast ul li.Channel ul {
+div.Container div.Content.Left div.Contrast.Users ul li.Channel ul {
 	
 }
-div.Container div.Content.Left div.Contrast ul li.Channel ul li.User{
+div.Container div.Content.Left div.Contrast.Users ul li.Channel ul li.User{
 	margin: 0 0 0 4px;
 	padding: 0 0 0 4px;
 	border-left: solid 1px rgba(60,60,60,1);
@@ -83,15 +119,15 @@ div.Container div.Content.Left div.Contrast ul li.Channel ul li.User{
 	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	box-sizing: border-box;         /* Opera/IE 8+ */
 }
-div.Container div.Content.Left div.Contrast ul li.User div.Controls {
+div.Container div.Content.Left div.Contrast.Users ul li.User div.Controls {
 	position: absolute;
 	top: 0px;
 	right: 12px;
 }
-div.Container div.Content.Left div.Contrast ul li:nth-child(2n+1) {
+div.Container div.Content.Left div.Contrast.Users ul li:nth-child(2n+1) {
 	background-color: rgba(250, 250, 250, 1);
 }
-div.Container div.Content.Left div.Contrast.SearchUser input[type=text] {
+div.Container div.Content.Left div.Contrast.Users input[type=text] {
 	width: 238px;
 	height: 24px;
 	margin: 4px;
@@ -123,6 +159,162 @@ div.Container div.Content.Right div.Contrast.Input div.Button.Send {
 	height: 70px;
 	line-height: 70px;
 	width: 50px;
+}
+div.Container div.Content.Middle div.Contrast.Search {
+	height: auto;
+	padding: 4px 4px 4px 4px;
+	margin: 0 0 4px 0;
+	display: inline-block;
+}
+div.Container div.Content.Middle div.Contrast.Search input[type=text] {
+	width: 256px;
+}
+
+div.Container div.Content.Middle div.Contrast.Search.Users {
+	width: 512px;
+	min-height: 400px;
+}
+div.Container div.Contrast + div.Contrast.Search.Users {
+	margin-top: 4px;
+}
+
+div.Container div.Content.Middle div.Contrast.Search.Users ul {
+	margin: 2px;
+	padding: 0;
+	list-style-type: none;
+	overflow: hidden;
+}
+div.Container div.Content.Middle div.Contrast.Search.Users ul li{
+	width: 100%;
+	position: relative;
+	min-height: 32px;
+	line-height: 32px;
+	margin: 0;
+	padding: 0 4px 0 4px;
+}
+div.Container div.Content.Middle div.Contrast.Search.Users ul li.User {
+	cursor: pointer;
+}
+div.Container div.Content.Middle div.Contrast.Search.Users ul li.User:hover {
+	background-color: rgba(60, 60, 60, 0.45);
+}
+div.Container div.Content.Middle div.Contrast.Search.Users ul li.User div.Controls {
+	position: absolute;
+	top: 0px;
+	right: 12px;
+}
+div.Container div.Content.Middle div.Contrast.Search.Users ul li:nth-child(2n+1) {
+	background-color: rgba(250, 250, 250, 1);
+}
+
+//
+div.Container div.Content.Middle div.Contrast.Requested {
+
+}
+div.Container div.Content.Middle div.Contrast.Requested input[type=text] {
+	width: 256px;
+}
+
+div.Container div.Content.Middle div.Contrast.Requested.Users {
+	vertical-align: top;
+	width: 300px;
+	min-height: 400px;
+	display: inline-block;
+}
+div.Container div.Contrast + div.Contrast.Requested.Users {
+	margin-top: 4px;
+}
+
+div.Container div.Content.Middle div.Contrast.Requested.Users ul {
+	margin: 2px;
+	padding: 0;
+	list-style-type: none;
+	overflow: hidden;
+}
+div.Container div.Content.Middle div.Contrast.Requested.Users ul li{
+	width: 100%;
+	position: relative;
+	min-height: 32px;
+	line-height: 32px;
+	margin: 0;
+	padding: 0 4px 0 4px;
+}
+div.Container div.Content.Middle div.Contrast.Requested.Users ul li.User {
+	cursor: pointer;
+}
+div.Container div.Content.Middle div.Contrast.Requested.Users ul li.User:hover {
+	background-color: rgba(60, 60, 60, 0.45);
+}
+div.Container div.Content.Middle div.Contrast.Requested.Users ul li.User div.Controls {
+	position: absolute;
+	top: 0px;
+	right: 12px;
+}
+div.Container div.Content.Middle div.Contrast.Requested.Users ul li:nth-child(2n+1) {
+	background-color: rgba(250, 250, 250, 1);
+}
+//
+div.Container div.Content.Middle div.Contrast.Requests {
+	height: auto;
+	padding: 4px 4px 4px 4px;
+	margin: 0 0 4px 0;
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests {
+	width: 100%;
+	min-height: 400px;
+}
+
+div.Container div.Content.Middle div.Contrast.Users.Requests ul {
+	margin: 2px;
+	padding: 0;
+	list-style-type: none;
+	overflow: hidden;
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests ul li{
+	width: 100%;
+	position: relative;
+	min-height: 32px;
+	line-height: 32px;
+	margin: 0;
+	padding: 0 4px 0 4px;
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests ul li.User {
+	cursor: pointer;
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests ul li.User:hover {
+	background-color: rgba(60, 60, 60, 0.45);
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests ul li.User div.Controls {
+	position: absolute;
+	top: 0px;
+	right: 12px;
+}
+div.Container div.Content.Middle div.Contrast.Users.Requests ul li:nth-child(2n+1) {
+	background-color: rgba(250, 250, 250, 1);
+}
+
+div.Box {
+	margin: 4px;
+}
+div.Box.Search {
+	width: 100%;
+	position: relative;
+}
+div.Field input[type=text] {
+	width: 256px;
+	height: 28px;
+}
+div.Field label {
+	width: 248px;
+	top: 0;
+	left: 0;
+}
+div.Field .Button {
+	height: 24px;
+	line-height: 24px;
+}
+div.Field  * {
+	display: inline-block;
 }
 .Button {
 	background: rgb(73,155,234); /* Old browsers */
@@ -171,12 +363,13 @@ div.Container div.Content.Right div.Contrast.Input div.Button.Send {
 }
 label {
 	position: absolute;
+	width: auto;
+	display: inline-block;
 	top: 2px;
 	right: 1px;
 	bottom: 1px;
 	left: 4px;
-	z-index: 1;
-	height: 20px;
+	height: 16px;
 	padding: 4px;
 	line-height: 20px;
 	color: #999;
@@ -191,10 +384,10 @@ label {
 	user-select: none;
 }
 input[type=text] {
-	box-shadow: 0 0 2px rgba(60,60,60,1);
+	box-shadow: inset 0 0 2px rgba(60,60,60,1);
 	padding: 0 4px 0 4px;
-	height: 20px;
-	line-height: 20px;
+	height: 24px;
+	line-height: 24px;
 	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	box-sizing: border-box;         /* Opera/IE 8+ */
@@ -202,4 +395,10 @@ input[type=text] {
 	width: 100%;
 	border: none;
 	border-radius: 2px;
+}
+div.Table {
+	display: none;
+}
+div.Table.Selected {
+	display: block;
 }
