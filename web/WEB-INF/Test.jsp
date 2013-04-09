@@ -36,19 +36,31 @@
 	    </div>
 	    <div id="Home" class="Table Selected">
 		<div class="Content Left">
-		    <div class="Contrast Users">
-			<div style="position: relative">
+		    <div class="Contrast">
+			<div class="Field">
 			    <label for="txtFilterUser">Filter</label>
 			    <input type="text" id="txtFilterUser"/>
 			</div>
-			<ul id="listFriends">
+			<ul id="listFriends" class="Users">
 
 			</ul>
 		    </div>
 		</div>
 		<div class="Content Right">
-		    <div id="chatOutput" class="Contrast Output">
-			Prout !
+		    <div class="Contrast Output">
+			<div id="chatHeader">
+			    <div id="mediaOutput">
+				
+			    </div>
+			    <div id="mediaInput">
+				
+			    </div>
+			</div>
+			<div id="chatOutputWrapper">
+			    <div id="chatOutput">
+
+			    </div>
+			</div>
 		    </div>
 		    <div class="Buttons">
 			<div id="btnCamera" class="Button"><div class="Icon Camera"></div></div>
@@ -64,45 +76,32 @@
 	    </div>
 	    <div id="Search" class="Table">
 		<div class="Content Middle">
-		    <div class="Box Search">
+		    <div class="Box Medium">
 			<div class="Field">
 			    <label for="txtSearch">Search</label>
 			    <input type="text" id="txtSearch"/>
 			    <div id="btnSearch" class="Button">Search</div>
 			</div>
 		    </div>
-		    <div class="Contrast Search Users">
-			<ul>
-			    <li class="User">
-				Arnaud Davoise
-			    </li>
-			    <li class="User">
-				Florent Tollin
-			    </li>
+		    <div id="FoundUsers" class="Contrast">
+			<h3>Results</h3>
+			<ul id="listFoundUsers" class="Users">
+
 			</ul>
 		    </div>
-		    <div class="Contrast Requested Users">
-			<ul>
-			    <li class="User">
-				Arnaud Davoise
-			    </li>
-			    <li class="User">
-				Florent Tollin
-			    </li>
+		    <div id="RequestedUsers" class="Contrast">
+			<h3>Requested users</h3>
+			<ul id="listRequestedUsers" class="Users">
+
 			</ul>
 		    </div>
 		</div>
 	    </div>
 	    <div id="Requests" class="Table">
 		<div class="Content Middle">
-		    <div class="Contrast Requests Users">
-			<ul>
-			    <li class="User">
-				Arnaud Davoise
-			    </li>
-			    <li class="User">
-				Florent Tollin
-			    </li>
+		    <div class="Contrast FriendRequests">
+			<h3>Friendship requests</h3>
+			<ul id="listUserRequests" class="Users">
 			</ul>
 		    </div>
 		</div>

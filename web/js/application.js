@@ -185,7 +185,7 @@
                             
 			    } else {
 				$.ajax({
-				    url: 'http://192.168.1.2:8080/nexus/login',
+				    url: 'http://www.darkengines.net/nexus/login',
 				    data: data,
 				    success: function(data) {
 					if (data.code) {
@@ -261,7 +261,7 @@
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({
-			url: 'http://192.168.1.2:8080/nexus/login',
+			url: 'http://www.darkengines.net/nexus/login',
 			data: data,
 			success: function(data) {
 			    if (data.code) {
@@ -304,7 +304,7 @@
 	    var result;
 	    $('submit', $container).click(function() {
 		$.ajax({
-		    url: '192.168.1.2:8080/nexus/login',
+		    url: 'www.darkengines.net/nexus/login',
 		    data: $form.serialize(),
 		    asynch: false,
 		    success: function(response) {

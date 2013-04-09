@@ -12,7 +12,7 @@ var safeCall = function(f) {
 	    foundUsers: {},
 	    requestedUsers: new Array(),
 	    friendRequests: new Array(),
-	    webSocket: new JWebSocket('ws://192.168.1.2:8080/nexus/websocket?uuid='+uuid, {
+	    webSocket: new JWebSocket('ws://www.darkengines.net/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
 		    engine.webSocket.send('INIT');
@@ -28,6 +28,12 @@ var safeCall = function(f) {
 			engine.channels = data.channels;
 			$.each(engine.friends, function(index, userId) {
 			    engine.bindUser(engine.users[userId]);
+			});
+			$.each(engine.requestedFriends, function(index, request) {
+			    engine.bindRequestedFriend(request);
+			});
+			$.each(engine.friendRequests, function(index, request) {
+			    engine.bindFriendRequest(request);
 			});
 			safeCall(engine.oninitialized);
 		    },
@@ -51,13 +57,13 @@ var safeCall = function(f) {
 			var target = null;
 			chatMessage.echo = false;
 			if (chatMessage.authorId == engine.id) {
-			    author = new User(id, '', 'Me');
+			    author = {displayName: 'Me'};
 			    recipient = engine.users[chatMessage.recipientId];
 			    chatMessage.echo = true;
 			    target = recipient;
 			} else {
 			    author = engine.users[chatMessage.authorId];
-			    recipient = new User(id, '', 'Me');
+			    recipient = {displayName: 'Me'};
 			    target = author;
 			}
 			chatMessage.author = author;
@@ -90,8 +96,8 @@ var safeCall = function(f) {
 		    ACCEPTED_FRIEND_REQUEST: function(id) {
 			var request = engine.requestedFriends[id];
 			delete engine.requestedFriends[id];
-			safeCall(request.deleted);
-			var user = engine.users[request.user];
+			safeCall(request.onaccepted);
+			var user = engine.users[request.userId];
 			engine.friends[user.id] = user.id;
 			engine.bindUser(engine.users[user.id]);
 			safeCall(engine.onnewfriend, user);
@@ -99,8 +105,8 @@ var safeCall = function(f) {
 		    FRIEND_REQUEST_ACCEPTED: function(id) {
 			var request = engine.friendRequests[id];
 			delete engine.friendRequests[id];
-			safeCall(request.deleted);
-			var user = engine.users[request.user];
+			safeCall(request.onaccepted);
+			var user = engine.users[request.userId];
 			engine.friends[user.id] = user.id;
 			engine.bindUser(engine.users[user.id]);
 			safeCall(engine.onnewfriend, user);
@@ -145,6 +151,12 @@ var safeCall = function(f) {
 		if (user.id in engine.users) {
 		    engine.users[user.id].online = user.online;
 		    safeCall(engine.users[user.id].onstatechanged);
+		    if (!user.online && user.peers != null && user.peers.length) {
+			engine.users[user.id].hangUp(function() {
+			    
+			});
+			engine.users[user.id].onHangUp()
+		    }
 		}
 	    },
 	    search: function(words) {
@@ -259,7 +271,19 @@ var safeCall = function(f) {
 			peer = null;
 			delete user.peers[user.outputPeerId];
 			user.receivingLocalStream = false;
+			safeCall(user.localstreamremoved());
 			callback();
+		    }
+		}
+		user.onHangUp = function() {
+		    if (user.stream != null) {
+			safeCall(user.streamremoved());
+			user.stream = null;
+		    }
+		    if (user.inputPeerId in user.peers) {
+			var peer = user.peers[user.inputPeerId];
+			peer.close();
+			delete user.peers[user.inputPeerId];
 		    }
 		}
 	    },
@@ -350,20 +374,28 @@ var safeCall = function(f) {
 		    }, function(stream) {
 			successCallback(stream);
 		    },
-		    function() {
-			alert('GET USER MEDIA FAILURE')
+		    function(e) {
+			var truc = '';
+			var i = 0;
+			$.each(e, function (index, value) {
+			   if (i > 0) {
+			       truc+='\n';
+			   }
+			   truc += '['+index+']='+value;
+			   i++;
+			});
+			alert('GET USER MEDIA FAILURE:\n'+truc);
 		    });
 		}
 	    },
-	    bindRequestedFriend: function(request) {
-		var u = new User(request);
-		engine.requestedUsers.push(u);
+	    bindRequestedFriend: function(user) {
+		engine.requestedUsers.push(user);
 	    },
 	    bindFriendRequest: function(request) {
-		request.accept = function() {
+		engine.friendRequests[request.id].accept = function() {
 		    engine.webSocket.send('ACCEPT_FRIEND_REQUEST', request.id);
 		}
-		request.reject = function() {
+		engine.friendRequests[request.id].reject = function() {
 		    engine.webSocket.send('REJECT_FRIEND_REQUEST', request.id);
 		}
 	    },
