@@ -31,6 +31,9 @@
 			<li data-table="Requests" class="Control">
 			    Friend requests
 			</li>
+			<li data-table="Channels" class="Control">
+			    Channels
+			</li>
 		    </ul>
 		</div>
 	    </div>
@@ -50,10 +53,10 @@
 		    <div class="Contrast Output">
 			<div id="chatHeader">
 			    <div id="mediaOutput">
-				
+
 			    </div>
 			    <div id="mediaInput">
-				
+
 			    </div>
 			</div>
 			<div id="chatOutputWrapper">
@@ -103,6 +106,40 @@
 			<h3>Friendship requests</h3>
 			<ul id="listUserRequests" class="Users">
 			</ul>
+		    </div>
+		    <div class="Contrast ChannelInvitations">
+			<h3>Channel invitations</h3>
+			<ul id="listChannelInvitations" class="Users">
+			</ul>
+		    </div>
+		</div>
+	    </div>
+	    <div id="Channels" class="Table">
+		<div class="Content Middle">
+		    <div class="Box Medium">
+			<div class="Field">
+			    <label for="txtCreateChannel">Channel name</label>
+			    <input type="text" id="txtCreateChannel"/>
+			    <div id="btnCreateChannel" class="Button">Create channel</div>
+			</div>
+			<div id="Channels" class="Contrast">
+			    <h3>Channels</h3>
+			    <ul id="listChannels" class="Users">
+				
+			    </ul>
+			</div>
+			<div id="Participants" class="Contrast">
+			    <h3>Participants</h3>
+			    <ul id="listChannelParticipants" class="Users">
+				
+			    </ul>
+			</div>
+			<div id="NotParticipants" class="Contrast">
+			    <h3>Participants</h3>
+			    <ul id="listChannelNotParticipants" class="Users">
+				
+			    </ul>
+			</div>
 		    </div>
 		</div>
 	    </div>

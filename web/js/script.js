@@ -10,12 +10,19 @@
 	var $btnCamera = $('#btnCamera');
 	var $listFoundUsers = $('#listFoundUsers');
 	var $listRequestedUsers = $('#listRequestedUsers');
+	var $listChannels = $('#listChannels');
+	var $listChannelParticipants = $('#listChannelParticipants');
 	var $listUserRequests = $('#listUserRequests');
+	var $listChannelNotParticipants = $('#listChannelNotParticipants');
+	var $listChannelInvitations = $('#listChannelInvitations');
 	var $txtSearch = $('#txtSearch');
 	var $btnSearch = $('#btnSearch');
+	var $txtCreateChannel = $('#txtCreateChannel');
+	var $btnCreateChannel = $('#btnCreateChannel');
 	
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
 	var selectedUser = null;
+	var selectedChannel = null;
 	var remoteMedias= {};
 	var localMedias= {};
 	
@@ -28,6 +35,12 @@
 	    });
 	    $.each(engine.friendRequests, function(index, request) {
 		processFriendRequest(request);
+	    });
+	    $.each(engine.channels, function(index, channel) {
+		processChannel(channel);
+	    });
+	    $.each(engine.channelInvitations, function(index, invitation) {
+		processChannelInvitation(invitation);
 	    });
 	};
 	
@@ -44,11 +57,11 @@
 		if (!selectedUser.receivingLocalStream) {
 		    selectedUser.call(function() {
 			
-		    });
+			});
 		} else {
 		    selectedUser.hangUp(function() {
 			
-		    });
+			});
 		}
 	    }
 	});
@@ -60,21 +73,43 @@
 	$btnSearch.click(function() {
 	    search();
 	});
+	$btnCreateChannel.click(function() {
+	    createChannel();
+	});
+	$txtCreateChannel.keydown(function(e) {
+	    if (e.keyCode == 13) {
+		createChannel();
+	    }
+	});
 	engine.onsearchresult = function(users) {
 	    processFoundUsers(users);
-	}
+	};
 	engine.onrequestedfriend = function (request) {
-	    var user = engine.users[request.user];
+	    var user = engine.users[request.userId];
 	    if (user.id in engine.foundUsers) {
 		engine.foundUsers[user.id].label.remove();
 	    }
 	    processRequestedUser(request);
-	}
+	};
 	engine.onfriendrequest = function (request) {
 	    processUserRequest(request);
-	}
+	};
 	engine.onnewfriend = function(user) {
 	    processFriend(user);
+	};
+	engine.onnewchannel = function(channel) {
+	    processChannel(channel);
+	};
+	engine.onchannelinvitation = function(invitation) {
+	    processChannelInvitation(invitation);
+	};
+	engine.onchannelinvitationsent = function(invitation) {
+	    if (selectedChannel != null && selectedChannel.id == invitation.channelId) {
+		fillChannelNotParticipantList(engine.channels[invitation.channelId]);
+	    }
+	};
+	function createChannel() {
+	    engine.createChannel($txtCreateChannel.val());
 	}
 	function search() {
 	    engine.search($txtSearch.val());
@@ -103,7 +138,7 @@
 	    }
 	    friend.onstream = function() {
 		addRemoteStream(friend.stream);
-                friend.label.addClass('Streaming');
+		friend.label.addClass('Streaming');
 	    }
 	    friend.onlocalstream = function() {
 		addLocalStream(engine.localStream);
@@ -122,7 +157,7 @@
 		    friend.chatMessages.push(friend.pendingChatMessages.pop());
 		}	    
 		loadChatMessages(friend);
-                $friend.removeClass('Talking');
+		$friend.removeClass('Talking');
 		$('.Talk', friend.label).remove();
 		if (friend.receivingLocalStream) {
 		    addLocalStream(engine.localStream);
@@ -138,7 +173,7 @@
 	    });
 	    friend.streamremoved = function() {
 		removeRemoteStream(friend.stream);
-                friend.label.removeClass('Streaming');
+		friend.label.removeClass('Streaming');
 	    }
 	    friend.localstreamremoved = function() {
 		removeLocalStream(engine.localStream);
@@ -216,8 +251,8 @@
 		$('.Talk', selectedUser.label).remove();
 	    } else {
 		if (author.label.not('.Talking')) {
-                    author.label.addClass('Talking');
-                }
+		    author.label.addClass('Talking');
+		}
 	    }
 	}
 	function loadChatMessages(author) {
@@ -231,7 +266,9 @@
 	function displayChatMessage(chatMessage) {
 	    var $message = $('<p></p>').text(chatMessage.author.displayName+': '+chatMessage.content);
 	    $chatOutput.append($message);
-	    $chatOutputWrapper.animate({ scrollTop: $chatOutputWrapper.get(0).scrollHeight}, 256);
+	    $chatOutputWrapper.animate({
+		scrollTop: $chatOutputWrapper.get(0).scrollHeight
+		}, 256);
 	}
 	function processFoundUsers(users) {
 	    $listFoundUsers.empty();
@@ -245,7 +282,7 @@
 	    });
 	}
 	function processRequestedUser(request) {
-	    var user = engine.users[request.user];
+	    var user = engine.users[request.userId];
 	    var $user = $('<li class="User">'+user.displayName+'</li>');
 	    request.label = $user;
 	    request.onaccepted = function() {
@@ -254,7 +291,7 @@
 	    $listRequestedUsers.append($user);
 	}
 	function processFriendRequest(request) {
-	    var user = engine.users[request.userId];
+	    var user = engine.users[request.userIdId];
 	    var $user = $('<li class="User">'+user.displayName+'</li>');
 	    $user.click(function() {
 		request.accept();
@@ -264,6 +301,51 @@
 		request.label.remove();
 	    };
 	    $listUserRequests.append($user);
+	}
+	function processChannel(channel) {
+	    var $channel = $('<li class="User">'+channel.name+'</li>');
+	    $channel.click(function() {
+		selectedChannel = channel;
+		fillChannelParticipantList(channel);
+		fillChannelNotParticipantList(channel);
+	    });
+	    channel.label = $channel;
+	    $listChannels.append($channel);
+	    
+	}
+	function processChannelInvitation(invitation) {
+	    var $invitation = $('<li class="User">'+invitation.channelName+'</li>');
+	    $invitation.click(function() {
+		invitation.accept();
+	    });
+	    invitation.label = $invitation;
+	    $listChannelInvitations.append($invitation);
+	    
+	}
+	function fillChannelParticipantList(channel) {
+	    $listChannelParticipants.empty();
+	    $.each(channel.participants, function(index, userId) {
+		var user = engine.users[userId];
+		var item = $('<li class="User">'+user.displayName+'</li>');
+		$listChannelParticipants.append(item);
+	    });
+	}
+	function fillChannelNotParticipantList(channel) {
+	    $listChannelNotParticipants.empty();
+	    var userIds = {};
+	    $.each(engine.friends, function(index, id) {
+		if (!(id in channel.participants) && !(id in channel.invitedUsers)) {
+		    userIds[id] = id;
+		}
+	    });
+	    $.each(userIds, function(index, userId) {
+		var user = engine.users[userId];
+		var $item = $('<li class="User">'+user.displayName+'</li>');
+		$item.click(function() {
+		    user.sendChannelInvitation(channel.id);
+		})
+		$listChannelNotParticipants.append($item);
+	    });
 	}
 	$('div.Container').each(function() {
 	    var $container = $(this);
@@ -282,6 +364,25 @@
 		    }
 		});
 	    });			
+	});
+	$('input[type=text]').each(function() {
+	    var $txt = $(this);
+	    var $label = $txt.prev();
+	   
+	    if ($label.is('label')) {
+		if ($txt.val().length) {
+		    $label.hide();
+		} else {
+		    $label.show();
+		}
+		$txt.bind('keyup blur', function() {
+		    if ($txt.val().length) {
+			$label.hide();
+		    } else {
+			$label.show();
+		    }
+		});
+	    }
 	});
     });
 })(jQuery);

@@ -12,7 +12,7 @@ var safeCall = function(f) {
 	    foundUsers: {},
 	    requestedUsers: new Array(),
 	    friendRequests: new Array(),
-	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
+	    webSocket: new JWebSocket('ws://192.168.1.2:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
 		    engine.webSocket.send('INIT');
@@ -34,6 +34,12 @@ var safeCall = function(f) {
 			});
 			$.each(engine.friendRequests, function(index, request) {
 			    engine.bindFriendRequest(request);
+			});
+			$.each(engine.channels, function(index, channel) {
+			    engine.bindChannel(channel);
+			});
+			$.each(engine.channelInvitations, function(index, invitation) {
+			    engine.bindChannelInvitation(invitation);
 			});
 			safeCall(engine.oninitialized);
 		    },
@@ -75,7 +81,7 @@ var safeCall = function(f) {
 			engine.users[request.user.id] = request.user;
 			engine.friendRequests[request.id] = {
 			    id: request.id,
-			    user: request.user.id
+			    userId: request.user.id
 			}
 			engine.bindFriendRequest(engine.friendRequests[request.id]);
 			safeCall(engine.onfriendrequest, engine.friendRequests[request.id]);
@@ -88,7 +94,7 @@ var safeCall = function(f) {
 			}
 			engine.requestedFriends[request.id] = {
 			    id: request.id, 
-			    user: request.user.id
+			    userId: request.user.id
 			};
 			engine.bindRequestedFriend(engine.requestedFriends[request.id]);
 			safeCall(engine.onrequestedfriend, engine.requestedFriends[request.id]);
@@ -144,6 +150,15 @@ var safeCall = function(f) {
 			} else {
 			    peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
 			}
+		    },
+		    CHANNEL_INVITATION_SENT: function(invitation) {
+			engine.channels[invitation.channelId].invitedUsers[invitation.userId] = invitation.userId;
+			safeCall(engine.onchannelinvitationsent, invitation);
+		    },
+		    CHANNEL_INVITATION: function(invitation) {
+			engine.channelInvitations[invitation.id] = invitation;
+			engine.bindChannelInvitation(engine.channelInvitations[invitation.id]);
+			safeCall(engine.onchannelinvitation, invitation);
 		    }
 		}
 	    }),
@@ -171,6 +186,12 @@ var safeCall = function(f) {
 		user.chatMessages = new Array();
 		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
+		};
+		user.sendChannelInvitation = function(channelId) {
+		    engine.webSocket.send('CHANNEL_INVITATION', {
+			channelId: channelId,
+			userId: user.id
+		    });
 		};
 		user.call = function(callback) {
 		    if (user.ouputStreamId == null) {
@@ -409,6 +430,14 @@ var safeCall = function(f) {
 			content: message
 		    });
 		}
+	    },
+	    bindChannelInvitation: function(invitation) {
+		invitation.accept = function() {
+		    engine.webSocket.send('ACCEPT_CHANNEL_INVITATION', invitation.id);
+		};
+		invitation.reject = function() {
+		    engine.webSocket.send('REJECT_CHANNEL_INVITATION', invitation.id);
+		};
 	    }
 	}
 	return engine;

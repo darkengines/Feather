@@ -273,6 +273,9 @@ div.Container div.Content.Right div.Contrast.Input div.Button.Send {
 #txtSearch {
     width: 256px;
 }
+#txtCreateChannel {
+    width: 256px;
+}
 div.Box {
 }
 div.Medium {
