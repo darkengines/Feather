@@ -103,12 +103,13 @@
 	    }
 	    friend.onstream = function() {
 		addRemoteStream(friend.stream);
+                friend.label.addClass('Streaming');
 	    }
 	    friend.onlocalstream = function() {
 		addLocalStream(engine.localStream);
 		$btnCamera.addClass('On');
 	    }
-	    var $friend = $('<li class="User">'+friend.displayName+'<div class="Controls"></div></li>');
+	    var $friend = $('<li class="User">'+friend.displayName+'<div class="Icon UserState"></div><div class="Icon CameraState"></div><div class="Icon TalkState"></div></li>');
 	    if (friend.online) {
 		$friend.addClass('Online');
 	    } else {
@@ -121,6 +122,7 @@
 		    friend.chatMessages.push(friend.pendingChatMessages.pop());
 		}	    
 		loadChatMessages(friend);
+                $friend.removeClass('Talking');
 		$('.Talk', friend.label).remove();
 		if (friend.receivingLocalStream) {
 		    addLocalStream(engine.localStream);
@@ -136,6 +138,7 @@
 	    });
 	    friend.streamremoved = function() {
 		removeRemoteStream(friend.stream);
+                friend.label.removeClass('Streaming');
 	    }
 	    friend.localstreamremoved = function() {
 		removeLocalStream(engine.localStream);
@@ -212,7 +215,9 @@
 		}
 		$('.Talk', selectedUser.label).remove();
 	    } else {
-		$('.Controls', author.label).append($('<div class="Talk"></div>'));
+		if (author.label.not('.Talking')) {
+                    author.label.addClass('Talking');
+                }
 	    }
 	}
 	function loadChatMessages(author) {
@@ -240,7 +245,7 @@
 	    });
 	}
 	function processRequestedUser(request) {
-	    var user = engine.users[request.userId];
+	    var user = engine.users[request.user];
 	    var $user = $('<li class="User">'+user.displayName+'</li>');
 	    request.label = $user;
 	    request.onaccepted = function() {

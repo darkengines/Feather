@@ -153,6 +153,35 @@ ul.Users li.Channel ul li.User{
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;         /* Opera/IE 8+ */
 }
+ul.Users li.User .UserState {
+    position: absolute;
+    top: 4px;
+    right: 83px;
+}
+ul.Users li.User.Online .UserState {
+    background-image: url(../image/online.png);
+}
+ul.Users li.User.Offline .UserState {
+    background-image: url(../image/offline.png);
+}
+ul.Users li.User .CameraState {
+    position: absolute;
+    top: 4px;
+    right: 59px;
+    background-image: none;
+}
+ul.Users li.User.Streaming .CameraState {
+    background-image: url(../image/camera.png);
+}
+ul.Users li.User .TalkState {
+    position: absolute;
+    top: 4px;
+    right: 25px;
+    background-image: none;
+}
+ul.Users li.User.Talking .TalkState {
+    background-image: url(../image/talk.png);
+}
 ul.Users li.User div.Controls {
     position: absolute;
     top: 0px;

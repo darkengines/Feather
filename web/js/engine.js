@@ -12,7 +12,7 @@ var safeCall = function(f) {
 	    foundUsers: {},
 	    requestedUsers: new Array(),
 	    friendRequests: new Array(),
-	    webSocket: new JWebSocket('ws://www.darkengines.net/nexus/websocket?uuid='+uuid, {
+	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
 		    engine.webSocket.send('INIT');
