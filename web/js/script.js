@@ -36,8 +36,8 @@
 	    $.each(engine.friendRequests, function(index, request) {
 		processFriendRequest(request);
 	    });
-	    $.each(engine.channels, function(index, channel) {
-		processChannel(channel);
+	    $.each(engine.availableChannels, function(index, channelId) {
+		processChannel(engine.channels[channelId]);
 	    });
 	    $.each(engine.channelInvitations, function(index, invitation) {
 		processChannelInvitation(invitation);
@@ -309,15 +309,25 @@
 		fillChannelParticipantList(channel);
 		fillChannelNotParticipantList(channel);
 	    });
+	    channel.onnewparticipant = function(user) {
+		if (selectedChannel!=null && selectedChannel.id == channel.id) {
+		    fillChannelParticipantList(channel);
+		    fillChannelNotParticipantList(channel);
+		}
+	    }
 	    channel.label = $channel;
 	    $listChannels.append($channel);
 	    
 	}
 	function processChannelInvitation(invitation) {
-	    var $invitation = $('<li class="User">'+invitation.channelName+'</li>');
+	    var channel = engine.channels[invitation.channelId];
+	    var $invitation = $('<li class="User">'+channel.name+'</li>');
 	    $invitation.click(function() {
 		invitation.accept();
 	    });
+	    invitation.accepted = function() {
+		$invitation.remove();
+	    };
 	    invitation.label = $invitation;
 	    $listChannelInvitations.append($invitation);
 	    
@@ -333,8 +343,13 @@
 	function fillChannelNotParticipantList(channel) {
 	    $listChannelNotParticipants.empty();
 	    var userIds = {};
+	    var invitedUsers = {};
+	    $.each(channel.invitations, function(index, invitation) {
+		invitation = engine.channelInvitations[invitation];
+		invitedUsers[invitation.userId] = invitation.userId;
+	    });
 	    $.each(engine.friends, function(index, id) {
-		if (!(id in channel.participants) && !(id in channel.invitedUsers)) {
+		if (!(id in channel.participants) && !(id in invitedUsers)) {
 		    userIds[id] = id;
 		}
 	    });

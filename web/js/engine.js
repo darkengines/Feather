@@ -12,7 +12,8 @@ var safeCall = function(f) {
             foundUsers: {},
             requestedUsers: new Array(),
             friendRequests: new Array(),
-            webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
+	    availableChannels: new Array(),
+            webSocket: new JWebSocket('ws://www.darkengines.net:8080/nexus/websocket?uuid='+uuid, {
                 interval: 5000,
                 open: function() {
                     engine.webSocket.send('INIT');
@@ -26,6 +27,7 @@ var safeCall = function(f) {
                         engine.requestedFriends = data.requestedFriends;
                         engine.channelInvitations = data.channelInvitations;
                         engine.channels = data.channels;
+			engine.availableChannels = data.availableChannels
                         $.each(engine.friends, function(index, userId) {
                             engine.bindUser(engine.users[userId]);
                         });
@@ -35,8 +37,8 @@ var safeCall = function(f) {
                         $.each(engine.friendRequests, function(index, request) {
                             engine.bindFriendRequest(request);
                         });
-                        $.each(engine.channels, function(index, channel) {
-                            engine.bindChannel(channel);
+                        $.each(engine.availableChannels, function(index, channelId) {
+                            engine.bindChannel(engine.channels[channelId]);
                         });
                         $.each(engine.channelInvitations, function(index, invitation) {
                             engine.bindChannelInvitation(invitation);
@@ -134,6 +136,7 @@ var safeCall = function(f) {
                     CHANNEL_CREATED: function(channelData) {
                         engine.channels[channelData.id] = channelData;
                         engine.bindChannel(engine.channels[channelData.id]);
+			engine.availableChannels[channelData.id] = channelData.id;
                         safeCall(engine.onnewchannel, engine.channels[channelData.id]);
                     },
                     OFFER: function(offer) {
@@ -155,32 +158,51 @@ var safeCall = function(f) {
                             peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
                         }
                     },
-                    CHANNEL_INVITATION_SENT: function(invitation) {
-                        engine.channels[invitation.channelId].invitedUsers[invitation.userId] = invitation.userId;
+                    CHANNEL_INVITATION_SENT: function(repport) {
+			var invitation = repport.invitation;
+			var user = repport.user;
+                        engine.channels[invitation.channelId].invitations[invitation.id] = invitation.id;
+			engine.channelInvitations[invitation.id] = invitation;
+			if (!user.id in engine.users) {
+			    engine.users[user.id] = user;
+			}
                         safeCall(engine.onchannelinvitationsent, invitation);
                     },
-                    CHANNEL_INVITATION: function(invitation) {
-                        engine.channelInvitations[invitation.id] = invitation;
+                    CHANNEL_INVITATION: function(data) {
+			var invitation = {
+			    id: data.id,
+			    channelId: data.channel.id
+			}
+			var channel = data.channel;
+			var users = data.users;
+			
+			$.each(users, function(index, user) {
+			   if (!user.id in engine.users) {
+			       engine.users[user.id] = user;
+			   }
+			});
+			
+			engine.channels[channel.id] = channel;
+			engine.channelInvitations[invitation.id] = invitation;
+			
                         engine.bindChannelInvitation(engine.channelInvitations[invitation.id]);
                         safeCall(engine.onchannelinvitation, invitation);
                     },
-                    CHANNEL: function(channel) {
-                        var c = {
-                            id: channel.id,
-                            name: channel.name,
-                            participants: {}
-                        };
-                        engine.channels[channel.id] = c;
-                        $.each(channel.participants, function(index, participant) {
-                            if (!participant.id in engine.users) {
-                                engine.users[participant.id] = participant;
-                                engine.bindUser(engine.users[participant.id]);
-                            }
-                            c.participants[participant.id] = participant.id;
-                        });
-                        engine.bindChannel(c);
-                        safeCall(engine.onnewchannel, c);
-                    }
+                    CHANNEL_INVITATION_ACCEPTED: function(invitationId) {
+			var invitation = engine.channelInvitations[invitationId];
+			var channel = engine.channels[invitation.channelId];
+			delete engine.channelInvitations[invitationId];
+			invitation.accepted();
+                        engine.bindChannel(channel);
+                        safeCall(engine.onnewchannel, channel);
+                    },
+		    ACCEPTED_CHANNEL_INVITATION: function(invitationId) {
+			var invitation = engine.channelInvitations[invitationId];
+			var channel = engine.channels[invitation.channelId];
+			delete engine.channelInvitations[invitationId];
+			delete channel.invitations[invitationId];
+			safeCall(channel.onnewparticipant, engine.users[invitation.userId]);
+		    }
                 }
             }),
             updateUser: function(user) {
@@ -464,7 +486,7 @@ var safeCall = function(f) {
         return engine;
     };
     //////////////////////////////////
-    // STUPID STUFF
+    // UGLY STUFF
     //////////////////////////////////
     function preferOpus(sdp) {
         var sdpLines = sdp.split('\r\n');
