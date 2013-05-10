@@ -23,6 +23,7 @@
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
 	var selectedUser = null;
 	var selectedChannel = null;
+	var channelMode = false;
 	var remoteMedias= {};
 	var localMedias= {};
 	
@@ -117,12 +118,20 @@
 	function sendChatMessage() {
 	    if (selectedUser != null && selectedUser.online) {
 		var message = $txtChat.text();
-		selectedUser.sendChatMessage({
-		    recipientId: selectedUser.id,
-		    content: message
-		});
+		if (channelMode) {
+		    selectedUser.sendChatMessage({
+			channelId: selectedUser.id,
+			content: message
+		    });
+		} else {
+		    selectedUser.sendChatMessage({
+			recipientId: selectedUser.id,
+			content: message
+		    });
+		}
 		$txtChat.text('');
 		$txtChat.focus();
+		
 	    }
 	}
 	function processFriend(friend) {
@@ -151,6 +160,7 @@
 		$friend.addClass('Offline');
 	    }
 	    $friend.click(function() {
+		channelMode = false;
 		selectedUser = friend;
 		clearChatOutput();
 		while (friend.pendingChatMessages.length > 0) {
@@ -241,17 +251,33 @@
 	    $video = null
 	}
 	function processChatMessages(author) {
-	    if (selectedUser != null && selectedUser.id == author.id) {
-		$.each(author.pendingChatMessages, function(index, message) {
-		    displayChatMessage(message)
-		});
-		while (author.pendingChatMessages.length) {
-		    author.chatMessages.push(author.pendingChatMessages.pop());
+	    if (!channelMode) {
+		if (selectedUser != null && selectedUser.id == author.id) {
+		    $.each(author.pendingChatMessages, function(index, message) {
+			displayChatMessage(message)
+		    });
+		    while (author.pendingChatMessages.length) {
+			author.chatMessages.push(author.pendingChatMessages.pop());
+		    }
+		    $('.Talk', selectedUser.label).remove();
+		} else {
+		    if (author.label.not('.Talking')) {
+			author.label.addClass('Talking');
+		    }
 		}
-		$('.Talk', selectedUser.label).remove();
 	    } else {
-		if (author.label.not('.Talking')) {
-		    author.label.addClass('Talking');
+		if (selectedUser != null && selectedUser.id == author.id) {
+		    $.each(author.pendingChatMessages, function(index, message) {
+			displayChatMessage(message)
+		    });
+		    while (author.pendingChatMessages.length) {
+			author.chatMessages.push(author.pendingChatMessages.pop());
+		    }
+		    $('.Talk', selectedUser.label).remove();
+		} else {
+		    if (author.label.not('.Talking')) {
+			author.label.addClass('Talking');
+		    }
 		}
 	    }
 	}
@@ -268,7 +294,7 @@
 	    $chatOutput.append($message);
 	    $chatOutputWrapper.animate({
 		scrollTop: $chatOutputWrapper.get(0).scrollHeight
-		}, 256);
+	    }, 256);
 	}
 	function processFoundUsers(users) {
 	    $listFoundUsers.empty();
@@ -315,9 +341,37 @@
 		    fillChannelNotParticipantList(channel);
 		}
 	    }
-	    channel.label = $channel;
 	    $listChannels.append($channel);
-	    
+	    var $channelUser = $('<li class="User">'+channel.name+'</li>');
+	    channel.onChatMessage = function() {
+		processChatMessages(channel);
+	    }
+	    $channelUser.click(function() {
+		channelMode = true;
+		selectedUser = channel;
+		clearChatOutput();
+		while (channel.pendingChatMessages.length > 0) {
+		    channel.chatMessages.push(channel.pendingChatMessages.pop());
+		}	    
+		loadChatMessages(channel);
+		$channelUser.removeClass('Talking');
+		$('.Talk', channel.label).remove();
+		if (channel.receivingLocalStream) {
+		    addLocalStream(engine.localStream);
+		    $btnCamera.addClass('On');
+		} else {
+		    $btnCamera.removeClass('On');
+		}
+		if (channel.streams.length) {
+		    $.each(channel.streams, function(index, stream) {
+			addRemoteStream(channel.stream); 
+		    });
+		}
+		$('.Selected', $listFriends).removeClass('Selected');
+		channel.label.addClass('Selected');
+	    });
+	    channel.label = $channelUser;
+	    $listFriends.append($channelUser);
 	}
 	function processChannelInvitation(invitation) {
 	    var channel = engine.channels[invitation.channelId];
@@ -380,7 +434,7 @@
 		});
 	    });			
 	});
-	$('input[type=text]').each(function() {
+	$('input[type=text], input[type=password]').each(function() {
 	    var $txt = $(this);
 	    var $label = $txt.prev();
 	   
