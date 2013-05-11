@@ -63,6 +63,9 @@
 			    <div id="chatOutput">
 
 			    </div>
+			    <div id="chatNotifications">
+				
+			    </div>
 			</div>
 		    </div>
 		    <div class="Buttons">

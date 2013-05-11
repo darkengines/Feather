@@ -22,7 +22,7 @@
 		};
 		selectedUser.sendChatMessage(chatMessage);
 	    }
-	}
+	};
 	chat.onstream = function() {
 	    if (selectedUser != null) {
 		if (selectedUser.receivingLocalStream) {
@@ -36,7 +36,7 @@
 		    });
 		}
 	    }
-	}
+	};
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
 	function processFriend(friend) {
 	    friend.onstatechanged = function() {
@@ -45,7 +45,7 @@
 		} else {
 		    friend.label.removeClass('Online').addClass('Offline');
 		}
-	    }
+	    };
 	    friend.onChatMessage = function() {
 		if (selectedUser != null && selectedUser.id == friend.id) {
 		    chat.loadMessages(friend.pendingChatMessages);
@@ -55,13 +55,26 @@
 		} else {
 		    alert('CACAAAAA ! t\'a un message !! CACA il faut cliquer sur l\'user d\'abord !! (CACA DANS LA BOUCHE)');
 		}
-	    }
+	    };
+	    friend.onoffer = function(offer) {
+		var $offerForm = $('<div>Accept ?</div>');
+		var $yes = $('<div>yes</div>');
+		var $no = $('<div>no</div>');
+		$yes.click(function() {
+		    friend.answer(offer);
+		});
+		$no.click(function() {
+		    
+		});
+		$offerForm.append($yes).append($no);
+		
+	    };
 	    friend.onstream = function() {
 		chat.addRemoteStream(friend.stream);
-	    }
+	    };
 	    friend.onlocalstream = function() {
 		chat.addLocalStream(engine.localStream);
-	    }
+	    };
 	    var $friend = $('<div class="User">'+friend.displayName+'</div>');
 	    if (friend.online) {
 		$friend.addClass('Online');
@@ -85,7 +98,7 @@
 	    });
 	    friend.streamremoved = function() {
 		chat.removeRemoteStream(friend.stream);
-	    }
+	    };
 	    friend.label = $friend;
 	    $friends.append($friend);
 	}
@@ -185,7 +198,7 @@
                             
 			    } else {
 				$.ajax({
-				    url: 'http://127.0.0.1:8080/nexus/login',
+				    url: 'http://192.168.0.2:8080/nexus/login',
 				    data: data,
 				    success: function(data) {
 					if (data.code) {
@@ -261,7 +274,7 @@
 		validate: function() {
 		    var data = $form.serialize();
 		    $.ajax({
-			url: 'http://127.0.0.1:8080/nexus/login',
+			url: 'http://192.168.0.2:8080/nexus/login',
 			data: data,
 			success: function(data) {
 			    if (data.code) {
@@ -304,7 +317,7 @@
 	    var result;
 	    $('submit', $container).click(function() {
 		$.ajax({
-		    url: '127.0.0.1:8080/nexus/login',
+		    url: '192.168.0.2:8080/nexus/login',
 		    data: $form.serialize(),
 		    asynch: false,
 		    success: function(response) {

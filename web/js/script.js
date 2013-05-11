@@ -19,6 +19,7 @@
 	var $btnSearch = $('#btnSearch');
 	var $txtCreateChannel = $('#txtCreateChannel');
 	var $btnCreateChannel = $('#btnCreateChannel');
+	var $chatNotifications = $('#chatNotifications');
 	
 	var engine = new Engine($.cookie('id'), $.cookie('uuid'));
 	var selectedUser = null;
@@ -54,7 +55,13 @@
 	    }
 	});
 	$btnCamera.click(function() {
-	    if (selectedUser != null)  {
+	    if (channelMode) {
+		if (selectedChannel !=null) {
+		    selectedChannel.offer();
+		}
+		return;
+	    }
+	    if (!selectedUser != null)  {
 		if (!selectedUser.receivingLocalStream) {
 		    selectedUser.call(function() {
 			
@@ -145,6 +152,19 @@
 	    friend.onChatMessage = function() {
 		processChatMessages(friend);
 	    }
+	    friend.onoffer = function(offer) {
+		var $offerForm = $('<div>Accept ?</div>');
+		var $yes = $('<div>yes</div>');
+		var $no = $('<div>no</div>');
+		$yes.click(function() {
+		    friend.answer(offer);
+		});
+		$no.click(function() {
+		    
+		});
+		$offerForm.append($yes).append($no);
+		$chatNotifications.append($offerForm);
+	    };
 	    friend.onstream = function() {
 		addRemoteStream(friend.stream);
 		friend.label.addClass('Streaming');

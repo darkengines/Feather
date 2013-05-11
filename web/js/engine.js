@@ -38,7 +38,7 @@ var safeCall = function(f) {
 		});
 		safeCall(engine.oninitialized);
 	    },
-	    webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
+	    webSocket: new JWebSocket('ws://192.168.0.2:8080/nexus/websocket?uuid='+uuid, {
 		interval: 5000,
 		open: function() {
 		    engine.webSocket.send('INIT', null, function(data) {
@@ -143,11 +143,19 @@ var safeCall = function(f) {
 		    },
 		    OFFER: function(offer) {
 			var user = engine.users[offer.caller];
-			user.answer(offer);
+			safeCall(user.onoffer, offer);
+			user.pendingOffer = offer;
+		    //user.answer(offer);
 		    },
 		    ANSWER: function(answer) {
 			var user = engine.users[answer.callee];
 			var peer = user.peers[answer.token];
+			var uniqueId = answer.uniqueId;
+			user.uniqueId = uniqueId;
+			user.hasUniqueId = true;
+			$.each(user.localIceCandidates, function(index, item) {
+			    engine.onIceCandidate(item.candidate, item.user, item.key, uniqueId);
+			});
 			peer.setRemoteDescription(new RTCSessionDescription(answer.description));
 			safeCall(user.onanswer, answer);
 		    },
@@ -245,6 +253,7 @@ var safeCall = function(f) {
 		user.pendingChatMessages = new Array();
 		user.iceCandidates = new Array();
 		user.chatMessages = new Array();
+		user.localIceCandidates = new Array();
 		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
 		};
@@ -261,7 +270,15 @@ var safeCall = function(f) {
 			user.peers[key] = engine.createPeerConnection();
 			var peer = user.peers[key];
 			peer.onicecandidate = function(e) {
-			    engine.onIceCandidate(e, user, key);
+			    if (user.hasUniqueId) {
+				engine.onIceCandidate(e, user, key, user.uniqueId);
+			    } else {
+				user.localIceCandidates.push({
+				    candidate:e,
+				    user:user,
+				    key:key
+				});
+			    }
 			};
 			peer.onaddstream = function(e) {
 			    user.stream = e.stream;
@@ -302,7 +319,7 @@ var safeCall = function(f) {
 			user.peers[key] = engine.createPeerConnection();
 			var peer = user.peers[key];
 			peer.onicecandidate = peer.onicecandidate = function(e) {
-			    engine.onIceCandidate(e, user, key);
+			    engine.onIceCandidate(e, user, key, offer.uniqueId);
 			};
 			peer.onaddstream = function(e) {
 			    user.stream = e.stream;
@@ -341,7 +358,7 @@ var safeCall = function(f) {
 			}
 			constraints = mergeConstraints(constraints, sdpConstraints);
 			peer.createAnswer(function(description) {
-			    engine.onGotLocalDescription(description, user, 'ANSWER', key);				    
+			    engine.onGotLocalDescription(description, user, 'ANSWER', key, offer.uniqueId);				    
 			}, null, constraints);
 		    }
 		};
@@ -395,13 +412,14 @@ var safeCall = function(f) {
 		}
 		return pc;
 	    },
-	    onIceCandidate: function(e, user, key) {
+	    onIceCandidate: function(e, user, key, uniqueId) {
 		var peer = user.peers[key];
 		if (e.candidate) {
 		    engine.webSocket.send('ICE_CANDIDATE', {
 			recipient: user.id,
 			iceCandidate: e.candidate,
-			token: key
+			token: key,
+			uniqueId: uniqueId
 		    });
 		} else {
 		    user.emptyIceCandidateCount++;
@@ -414,7 +432,7 @@ var safeCall = function(f) {
 		    }
 		}
 	    },
-	    onGotLocalDescription: function(description, user, type, key) {
+	    onGotLocalDescription: function(description, user, type, key, uniqueId) {
 		var caller, callee;
 		var peer = user.peers[key];
 		switch (type) {
@@ -434,12 +452,16 @@ var safeCall = function(f) {
 		}
 		description.sdp = preferOpus(description.sdp);
 		peer.setLocalDescription(description);
-		engine.webSocket.send(type, {
+		var data = {
 		    caller: caller,
 		    callee: callee,
 		    description: description,
 		    token: key
-		});
+		};
+		if (uniqueId) {
+		    data.uniqueId= uniqueId;
+		}
+		engine.webSocket.send(type,data);
 	    },
 	    doGetUserMedia: function(successCallback) {
 		if (engine.localStream != null) {
