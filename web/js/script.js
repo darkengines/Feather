@@ -152,12 +152,12 @@
 	    friend.onChatMessage = function() {
 		processChatMessages(friend);
 	    }
-	    friend.onoffer = function(offer) {
+	    friend.oncall = function() {
 		var $offerForm = $('<div>Accept ?</div>');
 		var $yes = $('<div>yes</div>');
 		var $no = $('<div>no</div>');
 		$yes.click(function() {
-		    friend.answer(offer);
+		    friend.offer();
 		});
 		$no.click(function() {
 		    

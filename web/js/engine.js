@@ -141,22 +141,23 @@ var safeCall = function(f) {
 			engine.availableChannels[channelData.id] = channelData.id;
 			safeCall(engine.onnewchannel, engine.channels[channelData.id]);
 		    },
+		    CALL: function(callData) {
+			var user = engine.users[callData.userId];
+			user.pendingCall = callData;
+			user.oncall();
+		    },
 		    OFFER: function(offer) {
-			var user = engine.users[offer.caller];
-			safeCall(user.onoffer, offer);
+			var user = engine.users[offer.userId];
 			user.pendingOffer = offer;
+			user.onoffer();
+		    //safeCall(user.onoffer, offer);
+		    //user.pendingOffer = offer;
 		    //user.answer(offer);
 		    },
 		    ANSWER: function(answer) {
-			var user = engine.users[answer.callee];
-			var peer = user.peers[answer.token];
-			var uniqueId = answer.uniqueId;
-			user.uniqueId = uniqueId;
-			user.hasUniqueId = true;
-			$.each(user.localIceCandidates, function(index, item) {
-			    engine.onIceCandidate(item.candidate, item.user, item.key, uniqueId);
-			});
-			peer.setRemoteDescription(new RTCSessionDescription(answer.description));
+			var user = engine.users[answer.userId];
+			user.pendingAnswer = answer
+			user.onanswer();
 			safeCall(user.onanswer, answer);
 		    },
 		    ICE_CANDIDATE: function(iceCandidate) {
@@ -247,7 +248,7 @@ var safeCall = function(f) {
 		engine.webSocket.send('SEARCH', words);
 	    },
 	    bindUser: function(user) {
-		user.peers = new Array();
+		user.peer = null;
 		user.inputPeerId = null;
 		user.ouputPeerId = null;
 		user.pendingChatMessages = new Array();
@@ -257,91 +258,56 @@ var safeCall = function(f) {
 		user.sendChatMessage = function(chatMessage) {
 		    engine.webSocket.send('CHAT_MESSAGE', chatMessage);
 		};
-		user.sendChannelInvitation = function(channelId) {
-		    engine.webSocket.send('CHANNEL_INVITATION', {
-			channelId: channelId,
-			userId: user.id
-		    });
-		};
-		user.call = function(callback) {
-		    if (user.ouputStreamId == null) {
-			var key = new Date().getTime();
-			user.outputPeerId = key;
-			user.peers[key] = engine.createPeerConnection();
-			var peer = user.peers[key];
-			peer.onicecandidate = function(e) {
-			    if (user.hasUniqueId) {
-				engine.onIceCandidate(e, user, key, user.uniqueId);
-			    } else {
-				user.localIceCandidates.push({
-				    candidate:e,
-				    user:user,
-				    key:key
-				});
+		user.offer = function() {
+		    user.peer = engine.createPeerConnection();
+		    user.peer.onicecandidate = function(e) {
+			engine.onIceCandidate(e, user, user.pendingCall.socketId);
+		    };
+		    user.peer.onaddstream = function(e) {
+			user.stream = e.stream;
+			user.receivingLocalStream = true;
+		    };
+		    user.peer.onremovestream = user.streamRemoved;
+		    
+		    ////
+		    var constraints = {
+			"optional": [],
+			"mandatory": {
+			    "MozDontOfferDataChannel": true
+			}
+		    };
+		    // temporary measure to remove Moz* constraints in Chrome
+		    if (webrtcDetectedBrowser === "chrome") {
+			for (prop in constraints.mandatory) {
+			    if (prop.indexOf("Moz") != -1) {
+				delete constraints.mandatory[prop];
 			    }
-			};
-			peer.onaddstream = function(e) {
-			    user.stream = e.stream;
-			    user.receivingLocalStream = true;
-			};
-			peer.onremovestream = user.streamRemoved;
-			engine.doGetUserMedia(function(stream) {
-			    engine.localStream = stream;
-			    peer.addStream(engine.localStream);
-			    user.receivingLocalStream = true;
-			    safeCall(user.onlocalstream);
-			    var constraints = {
-				"optional": [],
-				"mandatory": {
-				    "MozDontOfferDataChannel": true
-				}
-			    };
-			    // temporary measure to remove Moz* constraints in Chrome
-			    if (webrtcDetectedBrowser === "chrome") {
-				for (prop in constraints.mandatory) {
-				    if (prop.indexOf("Moz") != -1) {
-					delete constraints.mandatory[prop];
-				    }
-				}
-			    }
-			    constraints = mergeConstraints(constraints, sdpConstraints);
-			    peer.createOffer(function(description) {
-				engine.onGotLocalDescription(description, user, 'OFFER', key);
-				callback();
-			    }, null, constraints) ;
-			});
+			}
 		    }
+		    constraints = mergeConstraints(constraints, sdpConstraints);
+		    user.peer.createOffer(function(description) {
+			engine.onGotLocalDescription(description, user, 'OFFER', user.pendingOffer.socketId);				    
+		    }, null, constraints);
+		    ////
 		};
-		user.answer = function(offer) {
-		    if (user.inputStreamId == null) {
-			var key = offer.token;
-			user.inputPeerId = key;
-			user.peers[key] = engine.createPeerConnection();
-			var peer = user.peers[key];
-			peer.onicecandidate = peer.onicecandidate = function(e) {
-			    engine.onIceCandidate(e, user, key, offer.uniqueId);
-			};
-			peer.onaddstream = function(e) {
-			    user.stream = e.stream;
-			    safeCall(user.onstream, e.stream);
-			}
-			peer.onstatechange = function() {
-			    if (peer.iceState == 'disconnected') {
-				if (user.stream != null) {
-				    safeCall(user.streamremoved);
-				    user.stream = null;
-				}
-				peer.close();
-				delete user.peers[key];
-			    }
-			}
-			peer.onremovestream = function() {
-			    safeCall(user.streamremoved)
-			};
-			peer.setRemoteDescription(new RTCSessionDescription(offer.description));
-			while (user.iceCandidates.length) {
-			    peer.addIceCandidate(user.iceCandidates.pop());
-			}
+		user.onoffer = function() {
+		    user.peer = engine.createPeerConnection();
+		    user.peer.onicecandidate = user.peer.onicecandidate = function(e) {
+			engine.onIceCandidate(e, user, user.pendingOffer.socketId);
+		    };
+		    user.peer.onaddstream = function(e) {
+			user.stream = e.stream;
+			safeCall(user.onstream, e.stream);
+		    }
+		    user.peer.setRemoteDescription(new RTCSessionDescription(user.pendingOffer.description));
+		    while (user.iceCandidates.length) {
+			user.peer.addIceCandidate(user.iceCandidates.pop());
+		    }
+		    engine.doGetUserMedia(function(stream) {
+			engine.localStream = stream;
+			user.peer.addStream(engine.localStream);
+			user.receivingLocalStream = true;
+			safeCall(user.onlocalstream);
 			var constraints = {
 			    "optional": [],
 			    "mandatory": {
@@ -357,10 +323,29 @@ var safeCall = function(f) {
 			    }
 			}
 			constraints = mergeConstraints(constraints, sdpConstraints);
-			peer.createAnswer(function(description) {
-			    engine.onGotLocalDescription(description, user, 'ANSWER', key, offer.uniqueId);				    
-			}, null, constraints);
-		    }
+			user.peer.createAnswer(function(description) {
+			    engine.onGotLocalDescription(description, user, 'ANSWER', user.pendingCall.socketId);
+			    callback();
+			}, null, constraints) ;
+		    });  
+		};
+		user.onanswer = function() {
+		    user.peer.setRemoteDescription(new RTCSessionDescription(user.pendingAnswer.description));
+		};
+		user.sendChannelInvitation = function(channelId) {
+		    engine.webSocket.send('CHANNEL_INVITATION', {
+			channelId: channelId,
+			userId: user.id
+		    });
+		};
+		user.call = function(callback) {
+		    engine.webSocket.send('CALL', {
+			userId: user.id
+		    });
+		    
+		};
+		user.answer = function(offer) {
+		    
 		};
 		user.hangUp = function(callback) {
 		    if (user.outputPeerId in user.peers && user.receivingLocalStream) {
@@ -412,55 +397,23 @@ var safeCall = function(f) {
 		}
 		return pc;
 	    },
-	    onIceCandidate: function(e, user, key, uniqueId) {
-		var peer = user.peers[key];
+	    onIceCandidate: function(e, user, socketId) {
 		if (e.candidate) {
 		    engine.webSocket.send('ICE_CANDIDATE', {
 			recipient: user.id,
 			iceCandidate: e.candidate,
-			token: key,
-			uniqueId: uniqueId
+			socketId: socketId
 		    });
-		} else {
-		    user.emptyIceCandidateCount++;
-		    if (user.emptyIceCandidateCount > 16) {
-			user.stream = null;
-			peer.close();
-			peer = null;
-			user.onHangUp();
-			user.emptyIceCandidateCount = 0;	
-		    }
 		}
 	    },
-	    onGotLocalDescription: function(description, user, type, key, uniqueId) {
-		var caller, callee;
-		var peer = user.peers[key];
-		switch (type) {
-		    case ('OFFER'): {
-			caller = $.cookie('id');
-			callee = user.id;
-			break;
-		    }
-		    case ('ANSWER'): {
-			caller = user.id;
-			callee = $.cookie('id');
-			break;
-		    }
-		    default: {
-			throw new Exception(type+' not supported');
-		    }
-		}
+	    onGotLocalDescription: function(description, user, type, socketId) {
 		description.sdp = preferOpus(description.sdp);
-		peer.setLocalDescription(description);
+		user.peer.setLocalDescription(description);
 		var data = {
-		    caller: caller,
-		    callee: callee,
+		    userId: user.id,
 		    description: description,
-		    token: key
+		    socketId: socketId
 		};
-		if (uniqueId) {
-		    data.uniqueId= uniqueId;
-		}
 		engine.webSocket.send(type,data);
 	    },
 	    doGetUserMedia: function(successCallback) {
