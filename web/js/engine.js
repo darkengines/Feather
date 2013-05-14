@@ -38,7 +38,7 @@ var safeCall = function(f) {
                 });
                 safeCall(engine.oninitialized);
             },
-            webSocket: new JWebSocket('ws://192.168.0.2:8080/nexus/websocket?uuid='+uuid, {
+            webSocket: new JWebSocket('ws://192.168.0.3:8080/nexus/websocket?uuid='+uuid, {
                 interval: 5000,
                 open: function() {
                     engine.webSocket.send('INIT', null, function(data) {
@@ -147,22 +147,22 @@ var safeCall = function(f) {
                         user.oncall();
                     },
                     CHANNEL_CALL: function(callData) {
-                        var channel = engine.availableChannels[callData.channelId];
+                        var channel = engine.channels[callData.channelId];
                         channel.pendingCalls[callData.userId] = callData;
                         channel.oncall(callData.userId);
                     },
                     CHANNEL_OFFER: function(offerData) {
-                        var channel = engine.availableChannels[offerData.channelId];
+                        var channel = engine.channels[offerData.channelId];
                         channel.pendingOffers[offerData.userId] = offerData;
-                        channel.oncall(offerData.userId);
+                        channel.onoffer(offerData.userId);
                     },
                     CHANNEL_ANSWER: function(answerData) {
-                        var channel = engine.availableChannels[answerData.channelId];
+                        var channel = engine.channels[answerData.channelId];
                         channel.pendingAnswers[answerData.userId] = answerData;
-                        channel.oncall(answerData.userId);
+                        channel.onanswer(answerData.userId);
                     },
                     CHANNEL_ICE_CANDIDATE: function(iceCandidate) {
-                        var channel = engine.availableChannels[iceCandidate.channelId];
+                        var channel = engine.channels[iceCandidate.channelId];
                         var peer = channel.peers[iceCandidate.userId];
                         if (peer == null) {
                             channel.iceCandidates[iceCandidate.userId] = new Array();
@@ -186,12 +186,11 @@ var safeCall = function(f) {
                         safeCall(user.onanswer, answer);
                     },
                     ICE_CANDIDATE: function(iceCandidate) {
-                        var user = engine.users[iceCandidate.author];
-                        var peer = user.peers[iceCandidate.token];
-                        if (peer == null) {
+                        var user = engine.users[iceCandidate.userId];
+                        if (user.peer == null) {
                             user.iceCandidates.push(new RTCIceCandidate(iceCandidate.iceCandidate));
                         } else {
-                            peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
+                            user.peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
                         }
                     },
                     CHANNEL_INVITATION_SENT: function(repport) {
@@ -290,9 +289,7 @@ var safeCall = function(f) {
                     };
                     user.peer.onaddstream = function(e) {
                         user.stream = e.stream;
-                        user.receivingLocalStream = true;
                     };
-                    user.peer.onremovestream = user.streamRemoved;
 		    
                     ////
                     var constraints = {
@@ -311,7 +308,7 @@ var safeCall = function(f) {
                     }
                     constraints = mergeConstraints(constraints, sdpConstraints);
                     user.peer.createOffer(function(description) {
-                        engine.onGotLocalDescription(description, user, 'OFFER', user.pendingOffer.socketId);				    
+                        engine.onGotLocalDescription(description, user, 'OFFER', user.pendingCall.socketId);				    
                     }, null, constraints);
                 ////
                 };
@@ -349,8 +346,7 @@ var safeCall = function(f) {
                         }
                         constraints = mergeConstraints(constraints, sdpConstraints);
                         user.peer.createAnswer(function(description) {
-                            engine.onGotLocalDescription(description, user, 'ANSWER', user.pendingCall.socketId);
-                            callback();
+                            engine.onGotLocalDescription(description, user, 'ANSWER', user.pendingOffer.socketId);
                         }, null, constraints) ;
                     });  
                 };
@@ -425,7 +421,7 @@ var safeCall = function(f) {
             onIceCandidate: function(e, user, socketId) {
                 if (e.candidate) {
                     engine.webSocket.send('ICE_CANDIDATE', {
-                        recipient: user.id,
+                        userId: user.id,
                         iceCandidate: e.candidate,
                         socketId: socketId
                     });
@@ -441,22 +437,22 @@ var safeCall = function(f) {
                 };
                 engine.webSocket.send(type,data);
             },
-            onChannelIceCandidate: function(e, channelId, user, socketId) {
+            onChannelIceCandidate: function(e, channel, userId, socketId) {
                 if (e.candidate) {
                     engine.webSocket.send('CHANNEL_ICE_CANDIDATE', {
-                        recipient: user.id,
-                        channelId: channelId,
+                        userId: userId,
+                        channelId: channel.id,
                         iceCandidate: e.candidate,
                         socketId: socketId
                     });
                 }
             },
-            onChannelGotLocalDescription: function(description, channelId, user, type, socketId) {
+            onChannelGotLocalDescription: function(description, channel, type, userId, socketId) {
                 description.sdp = preferOpus(description.sdp);
-                user.peer.setLocalDescription(description);
+                channel.peers[userId].setLocalDescription(description);
                 var data = {
-                    userId: user.id,
-                    channelId: channelId,
+                    userId: userId,
+                    channelId: channel.id,
                     description: description,
                     socketId: socketId
                 };
@@ -506,6 +502,11 @@ var safeCall = function(f) {
                 engine.webSocket.send('CREATE_CHANNEL', name);
             },
             bindChannel: function(channel) {
+                channel.pendingCalls = new Array();
+                channel.pendingOffers = new Array();
+                channel.pendingAnswers = new Array();
+                channel.iceCandidates = new Array();
+                channel.peers = new Array();
                 channel.pendingChatMessages =new Array();
                 channel.streams = new Array();
                 channel.chatMessages = new Array();
@@ -513,14 +514,21 @@ var safeCall = function(f) {
                 channel.sendChatMessage = function(message) {
                     engine.webSocket.send('CHANNEL_CHAT_MESSAGE', message);
                 };
+                channel.call = function(callback) {
+                    engine.webSocket.send('CHANNEL_CALL', {
+                        channelId: channel.id
+                    });
+		    
+                };
                 channel.offer = function(userId) {
                     var peer = engine.createPeerConnection();
-                    channel.peer[userId] = peer;
+                    channel.peers[userId] = peer;
                     peer.onicecandidate = function(e) {
-                        engine.onChannelIceCandidate(e, channel.id, userId, channel.pendingCalls[userId].socketId);
+                        engine.onChannelIceCandidate(e, channel, userId, channel.pendingCalls[userId].socketId);
                     };
                     peer.onaddstream = function(e) {
                         channel.streams[userId] = e.stream;
+                        safeCall(channel.onstream, userId);
                     };
                     var constraints = {
                         "optional": [],
@@ -538,22 +546,25 @@ var safeCall = function(f) {
                     }
                     constraints = mergeConstraints(constraints, sdpConstraints);
                     peer.createOffer(function(description) {
-                        engine.onChannelGotLocalDescription(description, channel, 'CHANNEL_OFFER', userId, channel.pendingOffers[userId].socketId);				    
+                        engine.onChannelGotLocalDescription(description, channel, 'CHANNEL_OFFER', userId, channel.pendingCalls[userId].socketId);				    
                     }, null, constraints);
                 };
                 channel.onoffer = function(userId) {
                     var peer = engine.createPeerConnection();
-                    peer.onicecandidate = peer.onicecandidate = function(e) {
+                    channel.peers[userId] = peer;
+                    peer.onicecandidate = function(e) {
                         engine.onChannelIceCandidate(e, channel, userId, channel.pendingOffers[userId].socketId);
                     };
                     peer.setRemoteDescription(new RTCSessionDescription(channel.pendingOffers[userId].description));
-                    while (channel.pendingOffers[userId].iceCandidates.length) {
-                        peer.addIceCandidate(channel.pendingOffers[userId].iceCandidates.pop());
+                    if (typeof(channel.pendingOffers[userId].iceCandidates) != 'undefined') {
+                        while (channel.pendingOffers[userId].iceCandidates.length) {
+                            peer.addIceCandidate(channel.pendingOffers[userId].iceCandidates.pop());
+                        }
                     }
                     engine.doGetUserMedia(function(stream) {
                         engine.localStream = stream;
                         peer.addStream(engine.localStream);
-                        safeCall(channel.pendingOffers[userId].onlocalstream);
+                        //safeCall(channel.pendingOffers[userId].onlocalstream);
                         var constraints = {
                             "optional": [],
                             "mandatory": {
@@ -571,7 +582,6 @@ var safeCall = function(f) {
                         constraints = mergeConstraints(constraints, sdpConstraints);
                         peer.createAnswer(function(description) {
                             engine.onChannelGotLocalDescription(description, channel, 'CHANNEL_ANSWER', userId, channel.pendingOffers[userId].socketId);
-                            callback();
                         }, null, constraints) ;
                     });
                 };

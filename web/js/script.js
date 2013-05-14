@@ -56,8 +56,8 @@
 	});
 	$btnCamera.click(function() {
 	    if (channelMode) {
-		if (selectedChannel !=null) {
-		    selectedChannel.offer();
+		if (selectedUser !=null) {
+		    selectedUser.call();
 		}
 		return;
 	    }
@@ -337,7 +337,7 @@
 	    $listRequestedUsers.append($user);
 	}
 	function processFriendRequest(request) {
-	    var user = engine.users[request.userIdId];
+	    var user = engine.users[request.userId];
 	    var $user = $('<li class="User">'+user.displayName+'</li>');
 	    $user.click(function() {
 		request.accept();
@@ -366,6 +366,22 @@
 	    channel.onChatMessage = function() {
 		processChatMessages(channel);
 	    }
+            channel.onstream = function(userId) {
+		addRemoteStream(channel.streams[userId]);
+	    }
+            channel.oncall = function(userId) {
+		var $offerForm = $('<div>Accept ?</div>');
+		var $yes = $('<div>yes</div>');
+		var $no = $('<div>no</div>');
+		$yes.click(function() {
+		    channel.offer(userId);
+		});
+		$no.click(function() {
+		    
+		});
+		$offerForm.append($yes).append($no);
+		$chatNotifications.append($offerForm);
+	    };
 	    $channelUser.click(function() {
 		channelMode = true;
 		selectedUser = channel;
