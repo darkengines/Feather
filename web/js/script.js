@@ -236,7 +236,7 @@
 	}
 	
 	function addRemoteStream(stream) {
-	    var $video = $('<video></video>');
+	    var $video = $('<video controls ></video>');
 	    remoteMedias[stream.id] = $video;
 	    $mediaInput.append($video);
 	    var video = $video.get(0);
@@ -254,7 +254,7 @@
 	    $video = null;
 	}
 	function addLocalStream(stream) {
-	    var $video = $('<video></video>');
+	    var $video = $('<video controls ></video>');
 	    localMedias[stream.id] = $video;
 	    $mediaOutput.append($video);
 	    var video = $video.get(0);

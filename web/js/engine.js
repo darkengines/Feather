@@ -38,7 +38,7 @@ var safeCall = function(f) {
                 });
                 safeCall(engine.oninitialized);
             },
-            webSocket: new JWebSocket('ws://192.168.0.3:8080/nexus/websocket?uuid='+uuid, {
+            webSocket: new JWebSocket('wss://192.168.0.2:8443/nexus/websocket?uuid='+uuid, {
                 interval: 5000,
                 open: function() {
                     engine.webSocket.send('INIT', null, function(data) {
@@ -464,13 +464,13 @@ var safeCall = function(f) {
                 } else {
                     // Call into getUserMedia via the polyfill (adapter.js).
                     var constraints = {
-                        "mandatory": {},
+                        "mandatory": {/*chromeMediaSource: 'screen'*/},
                         "optional": []
                     };
                     getUserMedia({
                         'audio': true,
                         'video': constraints
-                    }, function(stream) {
+		        }, function(stream) {
                         successCallback(stream);
                     },
                     function(e) {
@@ -675,13 +675,5 @@ var safeCall = function(f) {
             'OfferToReceiveAudio': true,
             'OfferToReceiveVideo': true
         }
-    };
-    var mediaConstraints = {
-        "mandatory": {},
-        "optional": []
-    };
-    var mediaConfig = {
-        'audio': true,
-        'video': mediaConstraints
     };
 })();
