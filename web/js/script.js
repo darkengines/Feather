@@ -360,15 +360,19 @@
 		    fillChannelParticipantList(channel);
 		    fillChannelNotParticipantList(channel);
 		}
-	    }
+	    };
 	    $listChannels.append($channel);
 	    var $channelUser = $('<li class="User">'+channel.name+'</li>');
 	    channel.onChatMessage = function() {
 		processChatMessages(channel);
-	    }
+	    };
             channel.onstream = function(userId) {
 		addRemoteStream(channel.streams[userId]);
-	    }
+	    };
+            channel.onlocalstream = function() {
+		addLocalStream(engine.localStream);
+		$btnCamera.addClass('On');
+            };
             channel.oncall = function(userId) {
 		var $offerForm = $('<div>Accept ?</div>');
 		var $yes = $('<div>yes</div>');

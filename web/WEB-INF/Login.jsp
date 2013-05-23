@@ -2,7 +2,7 @@
 <div class="Card">
     <div class="Content">
 	<div class="Login Contrast Form" style="width: 512px;">
-	    <form action="https://192.168.1.2:8443/nexus/login" method="post">
+	    <form action="http://127.0.0.1:8080/nexus/login" method="post">
 		<h3>Login</h3>
 		<div class="Field">
 		    <label for="join_email">Email</label>

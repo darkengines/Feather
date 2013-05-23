@@ -99,7 +99,7 @@ var mediaConfig = {
 		   });
 		   return found;
 		},
-		websocket: $.websocket('ws://192.168.0.2:8443/nexus/websocket?uuid='+$.cookie('uuid'), {
+		websocket: $.websocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+$.cookie('uuid'), {
 		    interval: 5000,
 		    open: function () {
 			engine.websocket.send('GET_FRIENDS');

@@ -205,6 +205,10 @@ div.Container div.Content.Right div.Contrast.Output div.Header {
     left: 0px;
     right: 0px;
 }
+#chatHreader {
+    z-index: 1024;
+    position: absolute;
+}
 div.Container div.Content.Right div.Contrast.Output #chatHeader #mediaOutput {
     display: inline-block;
 }
@@ -235,6 +239,7 @@ div.Container div.Content.Right div.Contrast.Output #chatOutput {
     right: 4px;
     max-height: 100%;
     margin-top: 4px;
+    z-index: 128;
 }
 div.Container div.Content.Right div.Contrast.Output #chatNotifications {
     position: absolute;

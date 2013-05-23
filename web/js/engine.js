@@ -38,7 +38,7 @@ var safeCall = function(f) {
                 });
                 safeCall(engine.oninitialized);
             },
-            webSocket: new JWebSocket('wss://192.168.0.2:8443/nexus/websocket?uuid='+uuid, {
+            webSocket: new JWebSocket('ws://127.0.0.1:8080/nexus/websocket?uuid='+uuid, {
                 interval: 5000,
                 open: function() {
                     engine.webSocket.send('INIT', null, function(data) {
@@ -193,6 +193,10 @@ var safeCall = function(f) {
                             user.peer.addIceCandidate(new RTCIceCandidate(iceCandidate.iceCandidate));
                         }
                     },
+                    HANGUP: function(data) {
+                        var user = engine.users[data.userId];
+                        user.onhangup();
+                    },
                     CHANNEL_INVITATION_SENT: function(repport) {
                         var invitation = repport.invitation;
                         var user = repport.user;
@@ -272,6 +276,7 @@ var safeCall = function(f) {
                 engine.webSocket.send('SEARCH', words);
             },
             bindUser: function(user) {
+                user.open = false;
                 user.peer = null;
                 user.inputPeerId = null;
                 user.ouputPeerId = null;
@@ -360,6 +365,7 @@ var safeCall = function(f) {
                     });
                 };
                 user.call = function(callback) {
+                    engine.open = true;
                     engine.webSocket.send('CALL', {
                         userId: user.id
                     });
@@ -369,26 +375,21 @@ var safeCall = function(f) {
 		    
                 };
                 user.hangUp = function(callback) {
-                    if (user.outputPeerId in user.peers && user.receivingLocalStream) {
-                        var peer = user.peers[user.outputPeerId];
-                        peer.removeStream(engine.localStream);
-                        peer.close();
-                        peer = null;
-                        delete user.peers[user.outputPeerId];
-                        user.receivingLocalStream = false;
-                        safeCall(user.localstreamremoved());
-                        callback();
+                    if (user.peer != null) {                        
+                        user.peer.removeStream(engine.localStream);
+                        user.peer.close();
+                        user.peer = null;
                     }
+                    user.open = false;
                 }
-                user.onHangUp = function() {
+                user.onhangup = function() {
                     if (user.stream != null) {
                         safeCall(user.streamremoved());
                         user.stream = null;
                     }
-                    if (user.inputPeerId in user.peers) {
-                        var peer = user.peers[user.inputPeerId];
-                        peer.close();
-                        delete user.peers[user.inputPeerId];
+                    if (user.peer != null) {
+                        user.peer.close();
+                        user.peer = null;
                     }
                 }
             },
@@ -565,6 +566,8 @@ var safeCall = function(f) {
                         engine.localStream = stream;
                         peer.addStream(engine.localStream);
                         //safeCall(channel.pendingOffers[userId].onlocalstream);
+                        channel.receivingLocalStream = true;
+                        safeCall(channel.onlocalstream);
                         var constraints = {
                             "optional": [],
                             "mandatory": {
