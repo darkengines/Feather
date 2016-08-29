@@ -9,7 +9,7 @@
          <Set name="driverClass">com.mysql.jdbc.Driver</Set>
          <Set name="jdbcUrl">jdbc:mysql://192.168.0.2/conference</Set>
          <Set name="username">root</Set>
-         <Set name="password">2701104$reg2rt</Set>
+         <Set name="password">pass</Set>
          <Set name="minConnectionsPerPartition">5</Set>
          <Set name="maxConnectionsPerPartition">50</Set>
          <Set name="acquireIncrement">5</Set>
